@@ -7,14 +7,20 @@
     <td>
       {{account.value}}
     </td>
+    <td>
+      {{currency[account.currency]}}
+    </td>
   </tr>
   <tr>
   <td>
     Сумма
     </td>
-    <td>
+    <td v-if="data.prices">
       {{sum}}
-      </td>
+    </td>
+    <td>
+      Рубль
+    </td>
   </tr>
 </table>
 <form @submit.prevent="send">
@@ -25,8 +31,8 @@
     </select>
   </div>
   <div>Сумма<input type="text" required v-model="data.value"/> Валюта
-    <select v-model="selectedCurrency">
-      <option v-for="(curr, key) in currency" :value="{curr, key}">{{key}}</option>
+    <select v-model="data.selectedCurrency">
+      <option v-for="(curr, key) in currency" :value="key">{{curr}}</option>
     </select>
   </div>
   <div><input type="submit" value="Всё"/></div>
@@ -39,6 +45,9 @@ import { ref, onMounted, onBeforeMount, reactive, computed } from 'vue';
 import sendData from "./../functions/sendData";
 // @ts-ignore
 import getLatestData from "./../functions/getLatestData";
+// @ts-ignore
+import getCurrencyPrices from "./../functions/getCurrencyPrices";
+// @ts-ignore
 import currency from "./../util/currency.json";
 
 interface Account {
@@ -46,17 +55,38 @@ interface Account {
   value: any;
 }
 
-let data = reactive({
+interface Data {
+  account: string,
+  value: string | number,
+  accounts: Account,
+  selectedCurrency: string,
+  prices: any,
+}
+
+let a: Data = {
     account: "",
     value: undefined,
-    accounts: <any> {},
-});
+    accounts: undefined,
+    selectedCurrency: "rur",
+    prices: undefined,
+};
+
+let data = reactive(a);
 let selectedAccount = {};
-let selectedCurrency = 
+// let prices = reactive({data: {}});
 
 let sum = computed(() => {
   let sum = 0;
+  if(!data.prices) {
+    return 0;
+  }
   Object.keys(data?.accounts).forEach(account => {
+    let acc = data.accounts[account];
+    if (acc.currency.toUpperCase() !== "RUR") {
+      // console.log(acc.currency.toUpperCase(), data.prices[acc.currency.toUpperCase()])
+      sum += Number.parseFloat(data.accounts[account].value) * data.prices[acc.currency.toUpperCase()].Value;
+      return;
+    }
     sum += Number.parseFloat(data.accounts[account].value);
   });
   return sum.toLocaleString();
@@ -66,10 +96,16 @@ onMounted(() => {
   // console.log("mounted");
   // console.log(getAccounts());
   updateData();
+  let date = new Date();
+  date.setDate(date.getDate() - 1);
+  getCurrencyPrices(date, (newPrices) => {
+    // console.log("newPrices", newPrices);
+    data.prices = newPrices;
+  });
 });
 
 function send() {
-    sendData(data.account, data.value);
+    sendData(data.account, data.value, data.selectedCurrency);
 }
 
 function applySelected(account: any) {
@@ -79,7 +115,6 @@ function applySelected(account: any) {
 
 function updateData() {
   getLatestData((latestData:any) => {
-    
     data.accounts = latestData;
   });
 }

@@ -16,9 +16,12 @@ export default function(receivedDataCallback) {
             onValue(latestData, (snapshot) => {
                 let result = {};
                 snapshot.forEach((childSnapshot) => {
-                    console.log(childSnapshot.key);
+                    // console.log(childSnapshot.key);
+                    if(childSnapshot.key === "currencyPrices") {
+                        return;
+                    }
                     result[childSnapshot.key] = childSnapshot.val();
-                    console.log(childSnapshot.val());
+                    // console.log(childSnapshot.val());
                 });
                 receivedDataCallback(result);
             });

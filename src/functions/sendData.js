@@ -1,5 +1,3 @@
-
-import axios from "axios";
 import { getDatabase, ref, set } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
