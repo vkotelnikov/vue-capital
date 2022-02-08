@@ -1,7 +1,7 @@
 import { getDatabase, ref, set } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-export default function(accountName, accountData) {
+export default function(accountName, newValue, accountData) {
 
     onAuthStateChanged(getAuth(), (user) => {
         if (!user) {
@@ -14,20 +14,18 @@ export default function(accountName, accountData) {
         let dateSnapshot = new Date();
         let tzoffset = dateSnapshot.getTimezoneOffset() * 60000; //offset in milliseconds
         let date = (new Date(dateSnapshot.getTime() - tzoffset)).toISOString().replace(/T.*/,'').split('-').join('-');
-        set(latestData, accountData.date === date 
-            ? accountData
-            : {
-                value: accountData.value,
+        set(latestData, {
+                value: newValue,
                 currency: accountData.currency,
-                date: date,
-                prevDate: accountData.date,
+                date: accountData.date === date ? accountData.date : date,
+                prevDate: accountData.prevDate,
             }
         );
 
         // let date = new Date().toISOString().replace(/T.*/,'').split('-').join('-');
         const currentDateData = ref(db, "capital/" + uid + "/" + date + "/" + accountName);
         set(currentDateData, {
-            value: accountData.value, 
+            value: newValue, 
             currency: accountData.currency,
         });
     });

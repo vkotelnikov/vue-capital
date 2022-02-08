@@ -30,7 +30,8 @@
       <option v-for="(acc, key) in data.accounts" :value="{acc, key}">{{key}}</option>
     </select>
   </div>
-  <div>Сумма<input type="text" required v-model.number="data.value"/> Валюта
+  <div>Сумма<input type="text" required v-model.number="data.value"/> 
+  Валюта
     <select v-model="data.selectedCurrency">
       <option v-for="(curr, key) in currency" :value="key">{{curr}}</option>
     </select>
@@ -75,6 +76,7 @@ let a: Data = {
     accounts: undefined,
     selectedCurrency: "rur",
     prices: undefined,
+    selectedDate: new Date()
 };
 
 let data = reactive(a);
@@ -99,8 +101,7 @@ let sum = computed(() => {
 })
 
 function send() {
-    console.log();
-    sendData(data.account, data.accounts[data.account]);
+    sendData(data.account, data.value, data.accounts[data.account]);
 }
 
 function applySelected(account: any) {
@@ -122,6 +123,10 @@ getCurrencyPrices(date, (newPrices) => {
   // console.log("newPrices", newPrices);
   data.prices = newPrices;
 });
+
+function getDataAtDate() {
+
+}
 
 </script>
 

@@ -19,7 +19,6 @@ const props = defineProps({
     required: false,
   }
 });
-console.log("accs", props.accounts);
 
 let data = reactive({});
 const chartData = computed(() => {
@@ -41,7 +40,6 @@ for (const [key, item] of Object.entries(props.accounts)) {
     continue;
   }
   getCurrencyPrices(props.isLatest ? new Date() : new Date(item.date), (res) => {
-    console.log("ava", key, item, res[item.currency.toUpperCase()]);
     let inRub = Number.parseFloat(item.value) * res[item.currency.toUpperCase()].Value;
     data[key] = inRub;
   });
