@@ -38,7 +38,7 @@
   <div><input type="submit" value="Всё"/></div>
 </form>
 
-<Chart v-if="data.accounts" :accounts="data.accounts"></Chart>
+<Chart v-if="data.accounts" :accounts="data.accounts" :isLatest="true"></Chart>
 
 </template>
 

@@ -4,33 +4,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineProps } from "vue";
+import { ref, onMounted, defineProps, computed, reactive } from "vue";
 import { BarChart, useBarChart } from "vue-chart-3";
 import { Chart, ChartData, ChartOptions, registerables } from "chart.js";
+// @ts-ignore
+import getCurrencyPrices from "./../functions/getCurrencyPrices";
 Chart.register(...registerables);
 
 const props = defineProps({
-  accounts: Object
+  accounts: Object,
+  isLatest: {
+    type: Boolean,
+    default: false,
+    required: false,
+  }
+});
+console.log("accs", props.accounts);
+
+let data = reactive({});
+const chartData = computed(() => {
+  return {
+    datasets: [
+      {
+        label: "Капитал",
+        data: data,
+        backgroundColor: ['#77CEFF', '#0079AF', '#123E6B', '#97B0C4', '#A5C8ED'],
+      },
+    ],
+  };
 });
 
-const chartData = {
-      labels: Object.keys(props.accounts),
-      datasets: [
-        {
-          label: "Капитал",
-          data: Object.values(props.accounts).map(item => item.value),
-          backgroundColor: ['#77CEFF', '#0079AF', '#123E6B', '#97B0C4', '#A5C8ED'],
-        },
-      ],
-    };
+let prices = {};
+for (const [key, item] of Object.entries(props.accounts)) {
+  if (item.currency === "rur") {
+    data[key] = item.value;
+    continue;
+  }
+  getCurrencyPrices(props.isLatest ? new Date() : new Date(item.date), (res) => {
+    console.log("ava", key, item, res[item.currency.toUpperCase()]);
+    let inRub = Number.parseFloat(item.value) * res[item.currency.toUpperCase()].Value;
+    data[key] = inRub;
+  });
+}
 
 const chartOptions = {
   plugins: {
     title: {
         display: true,
-        text: 'Custom Chart Title'
+        text: 'Капитал по счетам'
     }
-  }
+  },
+  interaction: {
+    intersect: false,
+    mode: "x",
+  },
 }
 
 
