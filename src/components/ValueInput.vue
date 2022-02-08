@@ -57,6 +57,8 @@ import currency from "./../util/currency.json";
 interface Account {
   currency: string;
   value: any;
+  date: any;
+  prevDate: any;
 }
 
 interface Data {
@@ -96,24 +98,14 @@ let sum = computed(() => {
   return sum.toLocaleString();
 })
 
-onMounted(() => {
-  // console.log("mounted");
-  // console.log(getAccounts());
-  // updateData();
-  // let date = new Date();
-  // date.setDate(date.getDate() - 1);
-  // getCurrencyPrices(date, (newPrices) => {
-  //   // console.log("newPrices", newPrices);
-  //   data.prices = newPrices;
-  // });
-});
-
 function send() {
-    sendData(data.account, data.value, data.selectedCurrency);
+    console.log();
+    sendData(data.account, data.accounts[data.account]);
 }
 
 function applySelected(account: any) {
   data.value = account.acc.value;
+  data.selectedCurrency = account.acc.currency;
   data.account = account.key;
 }
 
