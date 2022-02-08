@@ -6,3 +6,4 @@ dist-ssr
 public
 .firebase
 firebaseConfig.json
+public*

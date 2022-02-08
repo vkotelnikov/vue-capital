@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "axios": "^0.25.0",
-    "firebase": "^9.6.6",
-    "firebaseui": "^6.0.0",
-    "vue": "^3.2.25"
+    "chart.js": "~3.7.0",
+    "firebase": "~9.6.6",
+    "firebaseui": "~6.0.0",
+    "vue": "~3.2.25",
+    "vue-chart-3": "~3.0.9"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^2.0.0",

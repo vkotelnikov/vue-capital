@@ -30,17 +30,21 @@
       <option v-for="(acc, key) in data.accounts" :value="{acc, key}">{{key}}</option>
     </select>
   </div>
-  <div>Сумма<input type="text" required v-model="data.value"/> Валюта
+  <div>Сумма<input type="text" required v-model.number="data.value"/> Валюта
     <select v-model="data.selectedCurrency">
       <option v-for="(curr, key) in currency" :value="key">{{curr}}</option>
     </select>
   </div>
   <div><input type="submit" value="Всё"/></div>
 </form>
+
+<Chart v-if="data.accounts" :accounts="data.accounts"></Chart>
+
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeMount, reactive, computed } from 'vue';
+import Chart from "./Chart.vue";
 // @ts-ignore
 import sendData from "./../functions/sendData";
 // @ts-ignore
@@ -95,13 +99,13 @@ let sum = computed(() => {
 onMounted(() => {
   // console.log("mounted");
   // console.log(getAccounts());
-  updateData();
-  let date = new Date();
-  date.setDate(date.getDate() - 1);
-  getCurrencyPrices(date, (newPrices) => {
-    // console.log("newPrices", newPrices);
-    data.prices = newPrices;
-  });
+  // updateData();
+  // let date = new Date();
+  // date.setDate(date.getDate() - 1);
+  // getCurrencyPrices(date, (newPrices) => {
+  //   // console.log("newPrices", newPrices);
+  //   data.prices = newPrices;
+  // });
 });
 
 function send() {
@@ -118,6 +122,14 @@ function updateData() {
     data.accounts = latestData;
   });
 }
+
+updateData();
+let date = new Date();
+date.setDate(date.getDate() - 2);
+getCurrencyPrices(date, (newPrices) => {
+  // console.log("newPrices", newPrices);
+  data.prices = newPrices;
+});
 
 </script>
 

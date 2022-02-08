@@ -1,8 +1,18 @@
+<template>
+
+  <a href="" @click="logout">Выйти</a>
+
+  <div><img alt="Vue logo" src="./assets/logo.png" /></div>
+  <ValueInput></ValueInput>
+  <HistoryChart></HistoryChart>
+</template>
+
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from './components/HelloWorld.vue'
-import ValueInput from './components/ValueInput.vue'
+import HelloWorld from './components/HelloWorld.vue';
+import ValueInput from './components/ValueInput.vue';
+import HistoryChart from "./components/HistoryChart.vue";
 import { getAuth, signOut } from "firebase/auth";
 
 function logout() {
@@ -14,15 +24,6 @@ function logout() {
   });
 }
 </script>
-
-<template>
-
-  <a href="" @click="logout">Выйти</a>
-
-  <div><img alt="Vue logo" src="./assets/logo.png" /></div>
-  <!-- <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" /> -->
-  <ValueInput></ValueInput>
-</template>
 
 <style>
 #app {
