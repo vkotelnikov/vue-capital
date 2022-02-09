@@ -38,6 +38,11 @@ const chartOptions = {
       stacked: true,
     }
   },
+  elements: {
+    point: {
+      radius: 1,
+    }
+  },
   plugins: {
     // filler: {
     //   propagate: false
@@ -92,6 +97,7 @@ function updateData() {
             borderColor: color,
             backgroundColor: color,
             fill: "stack",
+            borderWidth: 1,
             spanGaps: true,
             data: []
           };

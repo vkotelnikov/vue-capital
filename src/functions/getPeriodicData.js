@@ -29,7 +29,8 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
                     filteredPrev[latestAccount.key] = latestAccountData;
                     return;
                 }
-                if ((latestAccountData.date && (new Date(latestAccountData.date) < endDate)) && !latestAccountData.prevDate) {
+                if ((latestAccountData.date && (new Date(latestAccountData.date) < endDate)) 
+                    && (!latestAccountData.prevDate || latestAccountData.date == latestAccountData.prevDate)) {
                     filteredPrev[latestAccount.key] = {currency: "rur", value: 0};
                     return;
                 }
@@ -49,6 +50,7 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
 
             // console.log("step1", filteredPrev);
             onValue(periodicData, (accountsAtDate) => {
+
                 let result = {};
                 // console.log(filteredLatest);
                 result[startDateFormatted] = {};
@@ -66,6 +68,9 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
                         result[dateData.key] = {};
                     }
                     Object.keys(dateData.val()).forEach(key => {
+                        if (!result[startDateFormatted][key]) {
+                            result[startDateFormatted][key] = dateData.val()[key];
+                        }
                         result[dateData.key][key] = dateData.val()[key];
                     });
                 });
