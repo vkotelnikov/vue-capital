@@ -17,8 +17,8 @@ export default function(accountName, newValue, accountData) {
         set(latestData, {
                 value: newValue,
                 currency: accountData.currency,
-                date: accountData.date === date ? accountData.date : date,
-                prevDate: accountData.prevDate,
+                date: date,
+                prevDate: accountData.date === date ? accountData.prevDate : date,
             }
         );
 

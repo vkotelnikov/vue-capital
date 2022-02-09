@@ -1,5 +1,4 @@
 <template>
-  <!-- <canvas id="myChart" ref="canvasRef" width="400" height="400"></canvas> -->
   <BarChart :chartData="chartData" :options="chartOptions"/>
 </template>
 
@@ -22,6 +21,18 @@ const props = defineProps({
 
 let data = reactive({});
 const chartData = computed(() => {
+
+  for (const [key, item] of Object.entries(props.accounts)) {
+    if (item.currency === "rur") {
+      data[key] = item.value;
+      continue;
+    }
+    getCurrencyPrices(props.isLatest ? new Date() : new Date(item.date), (res) => {
+      let inRub = Number.parseFloat(item.value) * res[item.currency.toUpperCase()].Value;
+      data[key] = inRub;
+    });
+  }
+
   return {
     datasets: [
       {
@@ -32,18 +43,6 @@ const chartData = computed(() => {
     ],
   };
 });
-
-let prices = {};
-for (const [key, item] of Object.entries(props.accounts)) {
-  if (item.currency === "rur") {
-    data[key] = item.value;
-    continue;
-  }
-  getCurrencyPrices(props.isLatest ? new Date() : new Date(item.date), (res) => {
-    let inRub = Number.parseFloat(item.value) * res[item.currency.toUpperCase()].Value;
-    data[key] = inRub;
-  });
-}
 
 const chartOptions = {
   plugins: {
@@ -57,7 +56,6 @@ const chartOptions = {
     mode: "x",
   },
 }
-
 
 </script>
 

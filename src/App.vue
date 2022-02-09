@@ -2,7 +2,7 @@
 
   <a href="" @click="logout">Выйти</a>
 
-  <div><img alt="Vue logo" src="./assets/logo.png" /></div>
+  <h1>Капитал</h1>
   <ValueInput></ValueInput>
   <HistoryChart></HistoryChart>
 </template>

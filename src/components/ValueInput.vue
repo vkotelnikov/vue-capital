@@ -1,5 +1,19 @@
 <template>
 <table>
+  <tr>
+    <th>
+      Счёт
+    </th>
+    <th>
+      Сумма
+    </th>
+    <th>
+      Валюта
+    </th>
+    <th>
+      Включать в сумму
+    </th>
+  </tr>
   <tr v-for="(account, key) in data.accounts"> 
     <td>
       {{key}}
@@ -10,10 +24,13 @@
     <td>
       {{currency[account.currency]}}
     </td>
+    <td>
+      <input type="checkbox" v-model="includeInSum" :value="key"/>
+    </td>
   </tr>
   <tr>
-  <td>
-    Сумма
+    <td>
+      Сумма
     </td>
     <td v-if="data.prices">
       {{sum}}
@@ -36,7 +53,7 @@
       <option v-for="(curr, key) in currency" :value="key">{{curr}}</option>
     </select>
   </div>
-  <div><input type="submit" value="Всё"/></div>
+  <div><input type="submit" value="Сохранить"/></div>
 </form>
 
 <Chart v-if="data.accounts" :accounts="data.accounts" :isLatest="true"></Chart>
@@ -68,6 +85,7 @@ interface Data {
   accounts: Account,
   selectedCurrency: string,
   prices: any,
+  selectedDate: any,
 }
 
 let a: Data = {
@@ -76,11 +94,14 @@ let a: Data = {
     accounts: undefined,
     selectedCurrency: "rur",
     prices: undefined,
-    selectedDate: new Date()
+    selectedDate: new Date(),
 };
 
+let selectedAccount = ref({});
+let includeInSum = ref([]);
+
 let data = reactive(a);
-let selectedAccount = {};
+// let selectedAccount = {};
 // let prices = reactive({data: {}});
 
 let sum = computed(() => {
@@ -89,6 +110,9 @@ let sum = computed(() => {
     return 0;
   }
   Object.keys(data?.accounts).forEach(account => {
+    if (!includeInSum.value.includes(account)) {
+      return;
+    }
     let acc = data.accounts[account];
     if (acc.currency.toUpperCase() !== "RUR") {
       // console.log(acc.currency.toUpperCase(), data.prices[acc.currency.toUpperCase()])
@@ -113,14 +137,11 @@ function applySelected(account: any) {
 function updateData() {
   getLatestData((latestData:any) => {
     data.accounts = latestData;
+    includeInSum.value = Object.keys(data.accounts);
   });
 }
 
-updateData();
-let date = new Date();
-date.setDate(date.getDate() - 2);
-getCurrencyPrices(date, (newPrices) => {
-  // console.log("newPrices", newPrices);
+getCurrencyPrices(new Date(), (newPrices) => {
   data.prices = newPrices;
 });
 
@@ -128,6 +149,7 @@ function getDataAtDate() {
 
 }
 
+updateData();
 </script>
 
 
