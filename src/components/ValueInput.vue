@@ -42,15 +42,15 @@
 </table>
 <form @submit.prevent="send">
   <div>
-    Счёт<input type="text" required v-model="data.account"/>
-    <select v-model="selectedAccount" @change="applySelected(selectedAccount)">
-      <option v-for="(acc, key) in data.accounts" :value="{acc, key}">{{key}}</option>
+    Счёт<input type="text" required v-model="inputFormData.accountName" @input="accountNameChanged"/>
+    <select v-model="selected" @change="applySelected(selected)">
+      <option v-for="(acc, key) in data.accounts" :value="{name: key, value: acc.value, currency: acc.currency}">{{key}}</option>
     </select>
   </div>
-  <div>Сумма<input type="text" required v-model.number="data.value"/> 
+  <div>Сумма<input type="text" required v-model.number="inputFormData.value"/> 
   Валюта
-    <select v-model="data.selectedCurrency">
-      <option v-for="(curr, key) in currency" :value="key">{{curr}}</option>
+    <select v-model="inputFormData.currency" :disabled="inputFormData.accountName === selected.name">
+      <option v-for="(curr, key) in currency" :value="key" required>{{curr}}</option>
     </select>
   </div>
   <div><input type="submit" value="Сохранить"/></div>
@@ -72,41 +72,25 @@ import getCurrencyPrices from "./../functions/getCurrencyPrices";
 // @ts-ignore
 import currency from "./../util/currency.json";
 
-interface Account {
-  currency: string;
-  value: any;
-  date: any;
-  prevDate: any;
-}
 
-interface Data {
-  account: string,
-  value: string | number,
-  accounts: Account,
-  selectedCurrency: string,
-  prices: any,
-  selectedDate: any,
-}
+const includeInSum = ref([]);
+const selected = ref({});
 
-let a: Data = {
-    account: "",
-    value: undefined,
+let inputFormData = reactive({
+  accountName: undefined,
+  value: undefined,
+  currency: "rur",
+});
+
+let data = reactive({
     accounts: undefined,
-    selectedCurrency: "rur",
     prices: undefined,
     selectedDate: new Date(),
-};
-
-let selectedAccount = ref({});
-let includeInSum = ref([]);
-
-let data = reactive(a);
-// let selectedAccount = {};
-// let prices = reactive({data: {}});
+});
 
 let sum = computed(() => {
   let sum = 0;
-  if(!data.prices) {
+  if(!data.prices || !data?.accounts) {
     return 0;
   }
   Object.keys(data?.accounts).forEach(account => {
@@ -125,13 +109,13 @@ let sum = computed(() => {
 })
 
 function send() {
-    sendData(data.account, data.value, data.accounts[data.account]);
+    sendData(inputFormData);
 }
 
 function applySelected(account: any) {
-  data.value = account.acc.value;
-  data.selectedCurrency = account.acc.currency;
-  data.account = account.key;
+  inputFormData.value = account.value;
+  inputFormData.currency = account.currency;
+  inputFormData.accountName = account.name;
 }
 
 function updateData() {
@@ -144,6 +128,12 @@ function updateData() {
 getCurrencyPrices(new Date(), (newPrices) => {
   data.prices = newPrices;
 });
+
+function accountNameChanged() {
+  if (inputFormData.accountName != selected.value.name) {
+    selected.value = {};
+  }
+}
 
 function getDataAtDate() {
 
