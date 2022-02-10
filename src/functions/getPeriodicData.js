@@ -29,19 +29,6 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
                     filteredPrev[latestAccount.key] = latestAccountData;
                     return;
                 }
-                if ((latestAccountData.date && (new Date(latestAccountData.date) < endDate)) 
-                    && (!latestAccountData.prevDate || latestAccountData.date == latestAccountData.prevDate)) {
-                    filteredPrev[latestAccount.key] = {currency: "rur", value: 0};
-                    return;
-                }
-                if ((latestAccountData.date && (new Date(latestAccountData.date) > startDate))
-                    && (latestAccountData.prevDate && (new Date(latestAccountData.prevDate) < startDate))) {
-                    const prevData = ref(db, "capital/" + uid + "/" + latestAccountData.prevDate + "/" + latestAccount.key);
-                    onValue(prevData, (prevSnapshot) => {
-                        console.log("add filteredprev",latestAccount.key, prevSnapshot.val());
-                        filteredPrev[latestAccount.key] = prevSnapshot.val();
-                    });
-                }
             });
             
             const periodicData = query(ref(db, "capital/" + uid), startAt(startDateFormatted), endAt(endDateFormatted), orderByKey());
@@ -67,11 +54,11 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
                     if(! result[dateData.key]) {
                         result[dateData.key] = {};
                     }
-                    Object.keys(dateData.val()).forEach(key => {
-                        if (!result[startDateFormatted][key]) {
-                            result[startDateFormatted][key] = dateData.val()[key];
+                    Object.keys(dateData.val()).forEach(accountName => {
+                        if (!result[startDateFormatted][accountName]) {
+                            result[startDateFormatted][accountName] = dateData.val()[accountName];
                         }
-                        result[dateData.key][key] = dateData.val()[key];
+                        result[dateData.key][accountName] = dateData.val()[accountName];
                     });
                 });
                 
