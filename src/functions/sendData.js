@@ -1,28 +1,35 @@
 import { getDatabase, ref, set } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
+function isToday(someDate) {
+    const today = new Date();
+    return someDate.getDate() == today.getDate() 
+        && someDate.getMonth() == today.getMonth()
+        && someDate.getFullYear() == today.getFullYear();
+}
+
 export default function(data) {
 
     onAuthStateChanged(getAuth(), (user) => {
         if (!user) {
             alert("Необходимо авторизоваться");
         }
-
         const uid = user.uid;
         const db = getDatabase();
-        const latestData = ref(db, "capital/" + uid + "/latest/" + data.accountName);
-        let dateSnapshot = new Date();
-        let tzoffset = dateSnapshot.getTimezoneOffset() * 60000; //offset in milliseconds
-        let date = (new Date(dateSnapshot.getTime() - tzoffset)).toISOString().replace(/T.*/,'').split('-').join('-');
-        set(latestData, {
-                value: data.value,
-                currency: data.currency,
-                date: date,
-            }
-        );
+
+        let dateSnapshot = new Date(data.dateOfCapital);
+        if (isToday(dateSnapshot)) {
+            const latestData = ref(db, "capital/" + uid + "/latest/" + data.accountName);
+            set(latestData, {
+                    value: data.value,
+                    currency: data.currency,
+                    date: data.dateOfCapital,
+                }
+            );
+        }
 
         // let date = new Date().toISOString().replace(/T.*/,'').split('-').join('-');
-        const currentDateData = ref(db, "capital/" + uid + "/" + date + "/" + data.accountName);
+        const currentDateData = ref(db, "capital/" + uid + "/" + data.dateOfCapital + "/" + data.accountName);
         set(currentDateData, {
             value: data.value, 
             currency: data.currency,

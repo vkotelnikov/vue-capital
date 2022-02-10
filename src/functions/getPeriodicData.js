@@ -20,7 +20,7 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
         const latestDataAccounts = ref(db, "capital/" + uid + "/latest");
         onValue(latestDataAccounts, (latestSnapshot) => {
             // let accountNames = [];
-            console.log("snap",latestSnapshot);
+            // console.log("snap",latestSnapshot);
             // let filteredLatest = {};
             let filteredPrev = {};
             latestSnapshot.forEach(latestAccount => {

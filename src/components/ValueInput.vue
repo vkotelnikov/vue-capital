@@ -1,62 +1,64 @@
 <template>
-<table>
-  <tr>
-    <th>
-      Счёт
-    </th>
-    <th>
-      Сумма
-    </th>
-    <th>
-      Валюта
-    </th>
-    <th>
-      Включать в сумму
-    </th>
-  </tr>
-  <tr v-for="(account, key) in data.accounts"> 
-    <td>
-      {{key}}
-    </td>
-    <td>
-      {{account.value}}
-    </td>
-    <td>
-      {{currency[account.currency]}}
-    </td>
-    <td>
-      <input type="checkbox" v-model="includeInSum" :value="key"/>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Сумма
-    </td>
-    <td v-if="data.prices">
-      {{sum}}
-    </td>
-    <td>
-      Рубль
-    </td>
-  </tr>
-</table>
-<form @submit.prevent="send">
-  <div>
-    Счёт<input type="text" required v-model="inputFormData.accountName" @input="accountNameChanged"/>
-    <select v-model="selected" @change="applySelected(selected)">
-      <option v-for="(acc, key) in data.accounts" :value="{name: key, value: acc.value, currency: acc.currency}">{{key}}</option>
-    </select>
-  </div>
-  <div>Сумма<input type="text" required v-model.number="inputFormData.value"/> 
-  Валюта
-    <select v-model="inputFormData.currency" :disabled="inputFormData.accountName === selected.name">
-      <option v-for="(curr, key) in currency" :value="key" required>{{curr}}</option>
-    </select>
-  </div>
-  <div><input type="submit" value="Сохранить"/></div>
-</form>
 
-<Chart v-if="data.accounts" :accounts="data.accounts" :isLatest="true"></Chart>
+    <form @submit.prevent="send">
+        <div>
+            <input type="date" v-model="inputFormData.dateOfCapital" required @change="getDataAtDateOfCapital" />
+        </div>
+        <table>
+            <tr>
+                <th>
+                    Счёт
+                </th>
+                <th>
+                    Сумма
+                </th>
+                <th>
+                    Валюта
+                </th>
+                <th>
+                    Включать в сумму
+                </th>
+            </tr>
+            <tr v-for="(account, key) in data.accounts">
+                <td>
+                    {{key}}
+                </td>
+                <td>
+                    {{account.value}}
+                </td>
+                <td>
+                    {{currency[account.currency]}}
+                </td>
+                <td>
+                    <input type="checkbox" v-model="includeInSum" :value="key" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Сумма
+                </td>
+                <td v-if="data.prices">
+                    {{sum}}
+                </td>
+                <td>
+                    Рубль
+                </td>
+            </tr>
+        </table>
+        <div>
+            Счёт<input type="text" required v-model="inputFormData.accountName" @input="accountNameChanged" />
+            <select v-model="selected" @change="applySelected(selected)">
+                <option v-for="(acc, key) in data.accounts" :value="{name: key, value: acc.value, currency: acc.currency}">{{key}}</option>
+            </select>
+        </div>
+        <div>Сумма<input type="text" required v-model.number="inputFormData.value" />
+            Валюта
+            <select v-model="inputFormData.currency" :disabled="inputFormData.accountName === selected.name">
+                <option v-for="(curr, key) in currency" :value="key" required>{{curr}}</option>
+            </select>
+        </div>
+        <div><input type="submit" value="Сохранить" /></div>
+    </form>
 
 </template>
 
@@ -68,6 +70,8 @@ import sendData from "./../functions/sendData";
 // @ts-ignore
 import getLatestData from "./../functions/getLatestData";
 // @ts-ignore
+import getDataAtDate from "./../functions/getDataAtDate";
+// @ts-ignore
 import getCurrencyPrices from "./../functions/getCurrencyPrices";
 // @ts-ignore
 import currency from "./../util/currency.json";
@@ -75,11 +79,13 @@ import currency from "./../util/currency.json";
 
 const includeInSum = ref([]);
 const selected = ref({});
+// const dateOfCapital = ref(new Date().toISOString().replace(/T.*/,'').split('-').join('-'));
 
 let inputFormData = reactive({
   accountName: undefined,
   value: undefined,
   currency: "rur",
+  dateOfCapital: new Date().toISOString().replace(/T.*/,'').split('-').join('-'),
 });
 
 let data = reactive({
@@ -99,14 +105,13 @@ let sum = computed(() => {
     }
     let acc = data.accounts[account];
     if (acc.currency.toUpperCase() !== "RUR") {
-      // console.log(acc.currency.toUpperCase(), data.prices[acc.currency.toUpperCase()])
-      sum += Number.parseFloat(data.accounts[account].value) * data.prices[acc.currency.toUpperCase()].Value;
+      sum += Number.parseFloat(data.accounts[account].value) * (data.prices?.[acc?.currency?.toUpperCase()]?.Value || 1);
       return;
     }
     sum += Number.parseFloat(data.accounts[account].value);
   });
   return sum.toLocaleString();
-})
+});
 
 function send() {
     sendData(inputFormData);
@@ -135,8 +140,14 @@ function accountNameChanged() {
   }
 }
 
-function getDataAtDate() {
-
+function getDataAtDateOfCapital() {
+  data.prices = undefined;
+  getDataAtDate(new Date(inputFormData.dateOfCapital), (result) => {
+    data.accounts = result;
+  });
+  getCurrencyPrices(new Date(inputFormData.dateOfCapital), (newPrices) => {
+    data.prices = newPrices;
+  });
 }
 
 updateData();

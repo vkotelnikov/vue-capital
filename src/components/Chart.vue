@@ -21,6 +21,7 @@ const props = defineProps({
 
 let data = reactive({});
 const chartData = computed(() => {
+  data = {};
 
   for (const [key, item] of Object.entries(props.accounts)) {
     if (item.currency === "rur") {
@@ -28,7 +29,7 @@ const chartData = computed(() => {
       continue;
     }
     getCurrencyPrices(props.isLatest ? new Date() : new Date(item.date), (res) => {
-      let inRub = Number.parseFloat(item.value) * res[item.currency.toUpperCase()].Value;
+      let inRub = Number.parseFloat(item.value) * (res[item?.currency?.toUpperCase()]?.Value || 1);
       data[key] = inRub;
     });
   }

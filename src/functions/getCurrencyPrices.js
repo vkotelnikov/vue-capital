@@ -38,7 +38,6 @@ export default function (date = new Date(), receivedDataCallback, trialsLeft = 5
         if (!user) {
             alert("Необходимо авторизоваться");
         }
-        console.log("start get prices");
         const uid = user.uid;
         const db = getDatabase();
         const latestData = ref(db, "prices/" + formatDate);
