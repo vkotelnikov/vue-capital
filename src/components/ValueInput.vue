@@ -48,16 +48,16 @@
         <div>
             Счёт<input type="text" required v-model="inputFormData.accountName" @input="accountNameChanged" />
             <select v-model="selected" @change="applySelected(selected)">
-                <option v-for="(acc, key) in data.accounts" :value="{name: key, value: acc.value, currency: acc.currency}">{{key}}</option>
+                <option v-for="(acc, key) in data.accounts" :value="key">{{key}}</option>
             </select>
         </div>
-        <div>Сумма<input type="text" required v-model.number="inputFormData.value" />
+        <div>Сумма<input type="text" required v-model="inputFormData.value" @input="valueChanged"/>
             Валюта
-            <select v-model="inputFormData.currency" :disabled="inputFormData.accountName === selected.name">
+            <select v-model="inputFormData.currency" :disabled="inputFormData.accountName === selected">
                 <option v-for="(curr, key) in currency" :value="key" required>{{curr}}</option>
             </select>
         </div>
-        <div><input type="submit" value="Сохранить" /></div>
+        <div><input type="submit" :value="inputFormData.accountName === selected ? 'Сохранить' : 'Создать новую запись'" /></div>
     </form>
 
 </template>
@@ -78,7 +78,7 @@ import currency from "./../util/currency.json";
 
 
 const includeInSum = ref([]);
-const selected = ref({});
+const selected = ref("");
 // const dateOfCapital = ref(new Date().toISOString().replace(/T.*/,'').split('-').join('-'));
 
 let inputFormData = reactive({
@@ -115,19 +115,18 @@ let sum = computed(() => {
 
 function send() {
     sendData(inputFormData);
+    selected.value = inputFormData.accountName;
 }
 
 function applySelected(account: any) {
-  inputFormData.value = account.value;
-  inputFormData.currency = account.currency;
-  inputFormData.accountName = account.name;
+  inputFormData.value = data.accounts[account].value;
+  inputFormData.currency = data.accounts[account].currency;
+  inputFormData.accountName = account;
 }
 
-function updateData() {
-  getLatestData((latestData:any) => {
-    data.accounts = latestData;
+function dataLoadCallback(result) {
+    data.accounts = result;
     includeInSum.value = Object.keys(data.accounts);
-  });
 }
 
 getCurrencyPrices(new Date(), (newPrices) => {
@@ -135,22 +134,29 @@ getCurrencyPrices(new Date(), (newPrices) => {
 });
 
 function accountNameChanged() {
-  if (inputFormData.accountName != selected.value.name) {
-    selected.value = {};
+  if (inputFormData.accountName != selected) {
+    selected.value = "";
+    inputFormData.value = undefined;
+  }
+  if (Object.keys(data.accounts).includes(inputFormData.accountName)) {
+    applySelected(inputFormData.accountName);
+    selected.value = inputFormData.accountName;
   }
 }
 
 function getDataAtDateOfCapital() {
   data.prices = undefined;
-  getDataAtDate(new Date(inputFormData.dateOfCapital), (result) => {
-    data.accounts = result;
-  });
+  getDataAtDate(new Date(inputFormData.dateOfCapital), dataLoadCallback);
   getCurrencyPrices(new Date(inputFormData.dateOfCapital), (newPrices) => {
     data.prices = newPrices;
   });
 }
 
-updateData();
+function valueChanged() {
+  inputFormData.value = Number.parseFloat(inputFormData.value) >= 0 ? Number.parseFloat(inputFormData.value) : undefined;
+}
+
+getDataAtDate(new Date(), dataLoadCallback);
 </script>
 
 
