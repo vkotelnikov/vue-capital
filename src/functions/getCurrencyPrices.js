@@ -37,6 +37,7 @@ export default function (date = new Date(), receivedDataCallback, trialsLeft = 5
     onAuthStateChanged(getAuth(), (user) => {
         if (!user) {
             alert("Необходимо авторизоваться");
+            return location.reload();
         }
         const uid = user.uid;
         const db = getDatabase();

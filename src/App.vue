@@ -1,10 +1,12 @@
 <template>
 
-  <a href="" @click="logout">Выйти</a>
+  <button type="button" @click="logout">Выйти</Button>
 
   <h1>Капитал</h1>
   <ValueInput></ValueInput>
   <HistoryChart></HistoryChart>
+
+  <a id="cbr-daily" style="position: fixed; bottom: 0; right: 0; color:grey;" href="https://www.cbr-xml-daily.ru/">Курсы ЦБ РФ в XML и JSON, API</a>
 </template>
 
 <script setup lang="ts">
@@ -15,8 +17,10 @@ import ValueInput from './components/ValueInput.vue';
 import HistoryChart from "./components/HistoryChart.vue";
 import { getAuth, signOut } from "firebase/auth";
 
+
 function logout() {
   const auth = getAuth();
+  // console.log(auth);
   signOut(auth).then(() => {
     console.log("signed out");
   }).catch((error) => {

@@ -13,6 +13,7 @@ export default function(data) {
     onAuthStateChanged(getAuth(), (user) => {
         if (!user) {
             alert("Необходимо авторизоваться");
+            return location.reload();
         }
         const uid = user.uid;
         const db = getDatabase();

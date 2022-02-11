@@ -28,6 +28,9 @@ onAuthStateChanged(auth, (user) => {
     if(document.getElementById('loader')) {
         document.getElementById('loader')!.style.display = 'none';
     }
+    if(document.getElementById('cbr-daily')) {
+        document.getElementById('cbr-daily')!.style.display = 'none';
+    }
     // ...
   } else {
       const uiConfig = {
@@ -65,7 +68,7 @@ onAuthStateChanged(auth, (user) => {
     };
     
 
-    const authUi = new firebaseui.auth.AuthUI(auth);
+    const authUi = firebaseui.auth.AuthUI.getInstance() || new firebaseui.auth.AuthUI(auth);
     authUi.start('#firebaseui-auth-container', uiConfig);
   }
 });

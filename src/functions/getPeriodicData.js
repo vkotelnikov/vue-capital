@@ -5,7 +5,8 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
 
     onAuthStateChanged(getAuth(), (user) => {
         if (!user) {
-            receivedDataCallback({});
+            alert("Необходимо авторизоваться");
+            return location.reload();
         }
 
         // User is signed in, see docs for a list of available properties
