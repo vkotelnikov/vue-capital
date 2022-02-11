@@ -24,6 +24,7 @@ onAuthStateChanged(auth, (user) => {
     const uid = user.uid;
     const app = createApp(App);
     // app.use(axios);
+
     app.mount('#app');
     if(document.getElementById('loader')) {
         document.getElementById('loader')!.style.display = 'none';
@@ -35,20 +36,23 @@ onAuthStateChanged(auth, (user) => {
   } else {
       const uiConfig = {
         callbacks: {
-        signInSuccessWithAuthResult: function(authResult: any, redirectUrl: any) {
-            console.log(authResult, redirectUrl);
-            // User successfully signed in.
-            // Return type determines whether we continue the redirect automatically
-            // or whether we leave that to developer to handle.
-            return false;
-        },
-        uiShown: function() {
-            // The widget is rendered.
-            // Hide the loader.
-            if(document.getElementById('loader')) {
-                document.getElementById('loader')!.style.display = 'none';
-            }
-        }
+          signInSuccessWithAuthResult: function(authResult: any, redirectUrl: any) {
+              // console.log(authResult, redirectUrl);
+              // User successfully signed in.
+              // Return type determines whether we continue the redirect automatically
+              // or whether we leave that to developer to handle.
+              return false;
+          },
+          uiShown: function() {
+              // The widget is rendered.
+              // Hide the loader.
+              if(document.getElementById('loader')) {
+                  document.getElementById('loader')!.style.display = 'none';
+              }
+              if(document.getElementById('cbr-daily')) {
+                  document.getElementById('cbr-daily')!.style.display = 'none';
+              }
+          }
         },
         // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
         signInFlow: 'popup',

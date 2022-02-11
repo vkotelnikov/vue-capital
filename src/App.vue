@@ -15,14 +15,24 @@
 import HelloWorld from './components/HelloWorld.vue';
 import ValueInput from './components/ValueInput.vue';
 import HistoryChart from "./components/HistoryChart.vue";
-import { getAuth, signOut } from "firebase/auth";
+import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 
+
+// onAuthStateChanged(getAuth(), (user) => {
+//     // User is signed in, see docs for a list of available properties
+//     // https://firebase.google.com/docs/reference/js/firebase.User
+//     if (!user) {
+//         console.log("dataat");
+//         // return location.reload();
+//     }
+// });
 
 function logout() {
   const auth = getAuth();
-  // console.log(auth);
+  console.log(auth);
   signOut(auth).then(() => {
     console.log("signed out");
+    location.reload();
   }).catch((error) => {
     console.log("error", error);
   });

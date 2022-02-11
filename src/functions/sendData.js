@@ -10,30 +10,26 @@ function isToday(someDate) {
 
 export default function(data) {
 
-    onAuthStateChanged(getAuth(), (user) => {
-        if (!user) {
-            alert("Необходимо авторизоваться");
-            return location.reload();
-        }
-        const uid = user.uid;
-        const db = getDatabase();
+    const user = getAuth().currentUser;
 
-        let dateSnapshot = new Date(data.dateOfCapital);
-        if (isToday(dateSnapshot)) {
-            const latestData = ref(db, "capital/" + uid + "/latest/" + data.accountName);
-            set(latestData, {
-                    value: data.value,
-                    currency: data.currency,
-                    date: data.dateOfCapital,
-                }
-            );
-        }
+    const uid = user.uid;
+    const db = getDatabase();
 
-        // let date = new Date().toISOString().replace(/T.*/,'').split('-').join('-');
-        const currentDateData = ref(db, "capital/" + uid + "/" + data.dateOfCapital + "/" + data.accountName);
-        set(currentDateData, {
-            value: data.value, 
-            currency: data.currency,
-        });
+    let dateSnapshot = new Date(data.dateOfCapital);
+    if (isToday(dateSnapshot)) {
+        const latestData = ref(db, "capital/" + uid + "/latest/" + data.accountName);
+        set(latestData, {
+                value: data.value,
+                currency: data.currency,
+                date: data.dateOfCapital,
+            }
+        );
+    }
+
+    // let date = new Date().toISOString().replace(/T.*/,'').split('-').join('-');
+    const currentDateData = ref(db, "capital/" + uid + "/" + data.dateOfCapital + "/" + data.accountName);
+    set(currentDateData, {
+        value: data.value, 
+        currency: data.currency,
     });
 }

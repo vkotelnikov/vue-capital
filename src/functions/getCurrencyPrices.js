@@ -34,28 +34,24 @@ export default function (date = new Date(), receivedDataCallback, trialsLeft = 5
     let tzoffset = date.getTimezoneOffset() * 60000; //offset in milliseconds
     let formatDate = (new Date(date.getTime() - tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-');
 
-    onAuthStateChanged(getAuth(), (user) => {
-        if (!user) {
-            alert("Необходимо авторизоваться");
-            return location.reload();
+    const user = getAuth().currentUser;
+
+    const uid = user.uid;
+    const db = getDatabase();
+    const latestData = ref(db, "prices/" + formatDate);
+    onValue(latestData, (snapshot) => {
+        let result = {};
+        // console.log("getcurrsnap", latestData);
+        if (snapshot.val()) {
+            snapshot.forEach((childSnapshot) => {
+                // console.log(childSnapshot.key);
+                result[childSnapshot.key] = childSnapshot.val();
+                // console.log(childSnapshot.val());
+            });
+            receivedDataCallback(result);
+        } else {
+            console.log("plan b");
+            getPriceFromArchive(date, trialsLeft, formatDate);
         }
-        const uid = user.uid;
-        const db = getDatabase();
-        const latestData = ref(db, "prices/" + formatDate);
-        onValue(latestData, (snapshot) => {
-            let result = {};
-            // console.log("getcurrsnap", latestData);
-            if (snapshot.val()) {
-                snapshot.forEach((childSnapshot) => {
-                    // console.log(childSnapshot.key);
-                    result[childSnapshot.key] = childSnapshot.val();
-                    // console.log(childSnapshot.val());
-                });
-                receivedDataCallback(result);
-            } else {
-                console.log("plan b");
-                getPriceFromArchive(date, trialsLeft, formatDate);
-            }
-        });
     });
 }
