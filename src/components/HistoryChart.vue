@@ -1,6 +1,16 @@
 <template>
-  Дата начала<input type="date" v-model="data.startDate" @change="updateData"/>
-  Дата окончания<input type="date" v-model="data.endDate" :max="maxDate" @change="updateData"/>
+<hr>
+  <div>Исторический график</div>
+  <div class="row align-items-center">
+    <label for="dateFrom" class="col-3 col-lg-1 col-form-label">Дата от</label>
+    <div class="col-auto col-lg-2 px-0">
+      <input id="dateFrom" type="date" class="form-control form-control-sm" v-model="data.startDate" @change="updateData"/>
+    </div>
+    <label for="dateTo" class="col-1 col-lg-auto col-form-label">до</label>
+    <div class="col-4 col-lg-2">
+      <input id="dateTo" type="date" class="form-control form-control-sm" v-model="data.endDate" :max="maxDate" @change="updateData"/>
+    </div>
+  </div>
   <LineChart :chartData="chartData" :options="chartOptions"/>
 </template>
 

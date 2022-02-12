@@ -8,7 +8,9 @@
     "deploy": "firebase deploy --only hosting:capital-db"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.2",
     "axios": "^0.25.0",
+    "bootstrap": "^5.1.3",
     "chart.js": "~3.7.0",
     "chartjs-adapter-moment": "~1.0.0",
     "firebase": "~9.6.6",

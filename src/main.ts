@@ -3,6 +3,8 @@ import { initializeApp } from "firebase/app";
 import * as firebaseui from "firebaseui";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider } from "firebase/auth";
 import firebaseConfig from "./firebaseConfig.json";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap";
 
 // TODO: Add SDKs for Firebase products that you want to use
 

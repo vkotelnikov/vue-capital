@@ -7,9 +7,9 @@ export default function(receivedDataCallback, startDate, endDate = new Date()) {
 
     const uid = user.uid;
     let startDateFormatted = startDate.toISOString().replace(/T.*/,'').split('-').join('-');
-    console.log("startDateFormatted", startDateFormatted);
+    // console.log("startDateFormatted", startDateFormatted);
     let endDateFormatted = endDate.toISOString().replace(/T.*/,'').split('-').join('-');
-    console.log("endDateFormatted", endDateFormatted);
+    // console.log("endDateFormatted", endDateFormatted);
 
     const db = getDatabase();
     const latestDataAccounts = ref(db, "capital/" + uid + "/latest");
