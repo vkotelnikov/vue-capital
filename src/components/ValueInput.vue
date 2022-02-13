@@ -21,10 +21,18 @@
             Включать в сумму
           </div>
         </div>
+
         <hr class="mt-0">
-        <div class="row my-2" v-for="(account, key) in data.accounts" :class="key == inputFormData.accountName && 'text-primary'">
-          <div class="col-4" @click="applySelected(key)">
-            {{key}}
+
+        <div class="row my-2" v-for="(account, key) in data.accounts" :key="key" :class="key == inputFormData.accountName && 'text-primary'">
+
+          <div class="col-4" >
+            <span @click="applySelected(key)">{{key + " "}}</span>
+            
+            <svg @click="changeName(account.account)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+              <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+              <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+            </svg>
           </div>
           <div class="col-3" @click="applySelected(key)">
             {{account.value}}
@@ -35,6 +43,7 @@
           <div class="col-3 col-lg-2 text-center">
             <input type="checkbox" class="form-check-input" v-model="includeInSum" :value="key" />
           </div>
+
         </div>
         <div class="row">
           <div class="col-4">
@@ -85,6 +94,8 @@ import Chart from "./Chart.vue";
 // @ts-ignore
 import sendData from "./../functions/sendData";
 // @ts-ignore
+import updateAccountInfo from "./../functions/updateAccountInfo";
+// @ts-ignore
 import getLatestData from "./../functions/getLatestData";
 // @ts-ignore
 import getDataAtDate from "./../functions/getDataAtDate";
@@ -106,7 +117,7 @@ const maxDate = (new Date(new Date().getTime() + tzoffset)).toISOString().replac
 let inputFormData = reactive({
   accountName: undefined,
   value: undefined,
-  currency: "rur",
+  currency: "RUR",
   dateOfCapital: (new Date(new Date().getTime() + tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-'),
 });
 
@@ -125,11 +136,11 @@ let sum = computed(() => {
     if (!includeInSum.value.includes(account)) {
       return;
     }
-    console.log(sum);
+
     let acc = data.accounts[account];
-    console.log(acc);
-    if (acc.currency.toUpperCase() !== "RUR") {
-      sum += Number.parseFloat(acc.value || 0) * (data.prices?.[acc?.currency?.toUpperCase()]?.Value || 1);
+
+    if (acc.currency !== "RUR") {
+      sum += Number.parseFloat(acc.value || 0) * (data.prices?.[acc?.currency]?.Value || 1);
       return;
     }
     sum += Number.parseFloat(acc.value || 0);
@@ -138,8 +149,11 @@ let sum = computed(() => {
 });
 
 async function send() {
-    if (inputFormData.accountName !== selected && !confirm(`Создать новый счёт ${inputFormData.accountName}?`)) {
+    if (inputFormData.accountName !== selected.value && !confirm(`Создать новый счёт ${inputFormData.accountName}?`)) {
       return;
+    }
+    if (inputFormData.value === data.accounts[inputFormData.accountName].value) {
+      return console.log("equals");
     }
     await sendData(inputFormData);
     await getDataAtDate(new Date(new Date(inputFormData.dateOfCapital).getTime() + tzoffset), dataLoadCallback);
@@ -193,6 +207,19 @@ function getDataAtDateOfCapital() {
 
 function valueChanged() {
   inputFormData.value = Number.parseFloat(inputFormData.value) >= 0 ? Number.parseFloat(inputFormData.value) : undefined;
+}
+
+async function changeName(accountId) {
+  let newName = prompt("Введите новое имя счёта.");
+  if (!newName) {
+    return;
+  }
+  console.log(newName);
+  console.log(accountId);
+  let newData = {name: newName};
+  console.log("newData", newData);
+  await updateAccountInfo(accountId, newData);
+  getDataAtDate(new Date(new Date(inputFormData.dateOfCapital).getTime() + tzoffset), dataLoadCallback);
 }
 
 getDataAtDate(new Date(new Date().getTime() + tzoffset), dataLoadCallback);

@@ -1,6 +1,6 @@
-import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy, limit } from "firebase/firestore";
 
-import { getAuth, onAuthStateChanged, connectAuthEmulator } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 
 
 let tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
@@ -25,11 +25,11 @@ export default async function(date, receivedDataCallback) {
     if (isToday(date)) {
         for (let acc of accounts.docs) {
 
-            console.log("id", acc.id, acc.data());
+            // console.log("id", acc.id, acc.data());
             const docRef = doc(db, "snapshots", acc.data().latestSnapshot);
             const snap = await getDoc(docRef);
 
-            console.log("snap", snap.data());
+            // console.log("snap", snap.data());
 
             result[acc.data().name] = snap.data();
             result[acc.data().name].currency = acc.data().currency;
@@ -37,19 +37,26 @@ export default async function(date, receivedDataCallback) {
 
     } else {
         let nextDay = new Date(date);
-        nextDay.setDate(nextDay.getDate()+1);
+        nextDay.setDate(nextDay.getDate() + 1);
         for (let acc of accounts.docs) {
 
-            console.log("id", acc.id, acc.data());
-            console.log("d", date);
+            // console.log("id", acc.id, acc.data());
+            // console.log("d", date);
 
-            result[acc.data().name] = {currency: acc.data().currency, account: acc.id};
-            const q = query(collection(db, "snapshots"), where("account", "==", acc.id), where("date", ">=", date), where("date", "<", nextDay));
+            result[acc.data().name] = {
+                currency: acc.data().currency, 
+                account: acc.id
+            };
+            const q = query(collection(db, "snapshots"), 
+                where("account", "==", acc.id), 
+                where("date", "<", nextDay), 
+                orderBy("date", "desc"), 
+                limit(1));
             const accountsAtDate = await getDocs(q); 
             // console.log()
             for (let accAtDate of accountsAtDate.docs) {
                 // const snap = await getDoc(accAtDate);
-                console.log("dateSnap", accAtDate.data());
+                // console.log("dateSnap", accAtDate.data());
                    
                 result[acc.data().name].value = accAtDate.data().value;
                 result[acc.data().name].date = accAtDate.data().date;

@@ -71,7 +71,6 @@ export default async function(data) {
                 where("date", "<", nextDay));
 
             const accountsAtDate = await getDocs(q);
-            // console.log("acad", accountsAtDate);
             if (accountsAtDate.empty) {
                 addDoc(collection(db, "snapshots"), {
                     value: data.value,
