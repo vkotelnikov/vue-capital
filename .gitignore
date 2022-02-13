@@ -8,3 +8,4 @@ public
 firebaseConfig.json
 public*
 .idea
+*.log

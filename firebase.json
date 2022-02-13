@@ -1,7 +1,4 @@
 {
-  "database": {
-    "rules": "database.rules.json"
-  },
   "hosting": {
     "site": "capital-db",
     "public": "dist",
@@ -16,5 +13,23 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "emulators": {
+    "hosting": {
+      "host": "localhost",
+      "port": "3001"
+    },
+    "auth": {
+      "port": 3099
+    },
+    "firestore": {
+      "port": 3010
+    },
+    "database": {
+      "port": 3020
+    },
+    "ui": {
+      "enabled": true
+    }
   }
 }

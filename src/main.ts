@@ -1,7 +1,8 @@
 
 import { initializeApp } from "firebase/app";
 import * as firebaseui from "firebaseui";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore"; 
 import firebaseConfig from "./firebaseConfig.json";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
@@ -18,6 +19,9 @@ import { createApp } from 'vue';
 import App from './App.vue';
 
 const auth = getAuth(fireBaseApp);
+connectAuthEmulator(auth, "http://localhost:3099");
+const db = getFirestore();
+connectFirestoreEmulator(db, 'localhost', 3010);
 onAuthStateChanged(auth, (user) => {
   if (user) {
     //   console.log(user);

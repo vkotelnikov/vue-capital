@@ -4,7 +4,7 @@
         <div class="row">
           <label for="accountsDate" class="col-auto col-form-label">Состояния счетов на дату</label>
           <div class="col-auto">
-            <input id="accountsDate" type="date" class="form-control w-auto" v-model="inputFormData.dateOfCapital" required @change="getDataAtDateOfCapital" />
+            <input id="accountsDate" type="date" class="form-control w-auto" v-model="inputFormData.dateOfCapital" :max="maxDate" required @change="getDataAtDateOfCapital" />
           </div>
         </div>
         <div class="row align-items-end mt-2">
@@ -41,7 +41,7 @@
             Сумма
           </div>
           <div class="col-3">
-            <template v-if="data.prices">{{sum}}</template>
+            {{sum}}
           </div>
           <div class="col-2">
             Рубль
@@ -60,15 +60,15 @@
           </div>
         </div>
         <div class="row mt-2">
-          <label for="value" class="col-2 col-lg-1 col-form-label">Сумма</label>
+          <label for="value" ref="sumInput" class="col-2 col-lg-1 col-form-label">Сумма</label>
           <div class="col-4 col-lg-2"> 
             <input id="value" type="text" class="form-control" required v-model="inputFormData.value" @input="valueChanged"/>
           </div>
 
           <label for="currency" class="col-2 col-lg-1 col-form-label">Валюта</label>
           <div class="col col-lg-2">
-            <select id="currency" class="form-select" v-model="inputFormData.currency" :disabled="inputFormData.accountName === selected">
-              <option v-for="(curr, key) in currency" :value="key" required>{{curr}}</option>
+            <select id="currency" class="form-select" v-model="inputFormData.currency" required :disabled="inputFormData.accountName === selected">
+              <option v-for="(curr, key) in currency" :value="key">{{curr}}</option>
             </select>
           </div>
         </div>
@@ -96,15 +96,18 @@ import currency from "./../util/currency.json";
 
 const includeInSum = ref([]);
 const selected = ref("");
+const sumInput = ref(null);
 // const dateOfCapital = ref(new Date().toISOString().replace(/T.*/,'').split('-').join('-'));
 
 let tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
+const maxDate = (new Date(new Date().getTime() + tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-');
+
 // let requestFormatDate = (new Date(new Date(date).getTime() - tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-');
 let inputFormData = reactive({
   accountName: undefined,
   value: undefined,
   currency: "rur",
-  dateOfCapital: (new Date(new Date().getTime() - tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-'),
+  dateOfCapital: (new Date(new Date().getTime() + tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-'),
 });
 
 let data = reactive({
@@ -115,43 +118,54 @@ let data = reactive({
 
 let sum = computed(() => {
   let sum = 0;
-  if(!data.prices || !data?.accounts) {
+  if( !data?.accounts) {
     return 0;
   }
   Object.keys(data?.accounts).forEach(account => {
     if (!includeInSum.value.includes(account)) {
       return;
     }
+    console.log(sum);
     let acc = data.accounts[account];
+    console.log(acc);
     if (acc.currency.toUpperCase() !== "RUR") {
-      sum += Number.parseFloat(data.accounts[account].value) * (data.prices?.[acc?.currency?.toUpperCase()]?.Value || 1);
+      sum += Number.parseFloat(acc.value || 0) * (data.prices?.[acc?.currency?.toUpperCase()]?.Value || 1);
       return;
     }
-    sum += Number.parseFloat(data.accounts[account].value);
+    sum += Number.parseFloat(acc.value || 0);
   });
   return sum.toLocaleString();
 });
 
-function send() {
-    sendData(inputFormData);
+async function send() {
+    if (inputFormData.accountName !== selected && !confirm(`Создать новый счёт ${inputFormData.accountName}?`)) {
+      return;
+    }
+    await sendData(inputFormData);
+    await getDataAtDate(new Date(new Date(inputFormData.dateOfCapital).getTime() + tzoffset), dataLoadCallback);
     selected.value = inputFormData.accountName;
+    inputFormData.accountId = data.accounts[inputFormData.accountName].account;
 }
 
 function applySelected(account: any) {
+  console.log(account, data.accounts[account]);
   inputFormData.value = data.accounts[account].value;
   inputFormData.currency = data.accounts[account].currency;
+  inputFormData.accountId = data.accounts[account]["account"];
   inputFormData.accountName = account;
   selected.value = inputFormData.accountName;
+  sumInput.value.focus();
 }
 
 function dataLoadCallback(result) {
-    data.accounts = result;
-    includeInSum.value = Object.keys(data.accounts);
+  console.log("res", result);
+  data.accounts = result;
+  includeInSum.value = Object.keys(data.accounts);
 }
 
-getCurrencyPrices(new Date(), (newPrices) => {
-  data.prices = newPrices;
-});
+// getCurrencyPrices(new Date(), (newPrices) => {
+//   data.prices = newPrices;
+// });
 
 function accountNameChanged() {
   if (inputFormData.accountName != selected) {
@@ -168,19 +182,20 @@ function getDataAtDateOfCapital() {
   inputFormData.value = undefined;
   inputFormData.currency = undefined;
   inputFormData.accountName = undefined;
+  inputFormData.accountId = undefined;
   selected.value = "";
   data.prices = undefined;
-  getDataAtDate(new Date(inputFormData.dateOfCapital), dataLoadCallback);
-  getCurrencyPrices(new Date(inputFormData.dateOfCapital), (newPrices) => {
-    data.prices = newPrices;
-  });
+  getDataAtDate(new Date(new Date(inputFormData.dateOfCapital).getTime() + tzoffset), dataLoadCallback);
+  // getCurrencyPrices(new Date(inputFormData.dateOfCapital), (newPrices) => {
+  //   data.prices = newPrices;
+  // });
 }
 
 function valueChanged() {
   inputFormData.value = Number.parseFloat(inputFormData.value) >= 0 ? Number.parseFloat(inputFormData.value) : undefined;
 }
 
-getDataAtDate(new Date(), dataLoadCallback);
+getDataAtDate(new Date(new Date().getTime() + tzoffset), dataLoadCallback);
 </script>
 
 
