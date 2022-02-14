@@ -1,9 +1,9 @@
-import { getDatabase, ref, onValue, set } from "firebase/database";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, orderBy, limit } from "firebase/firestore";
 
 import axios from "axios";
 
-function getPriceFromArchive(date, trialsLeft = 5, originalRequestDateString) {
+async function getPriceFromArchive(date, trialsLeft = 5, originalRequestDateString) {
     console.log("plan b");
     if (trialsLeft < 1) {
         return;
@@ -12,46 +12,36 @@ function getPriceFromArchive(date, trialsLeft = 5, originalRequestDateString) {
     let requestFormatDate = (new Date(new Date(date).getTime() - tzoffset)).toISOString().replace(/T.*/, '').split('-').join('/');
 
     let url = "https://www.cbr-xml-daily.ru/archive/" + requestFormatDate + "/daily_json.js";
-    return axios({
-        method: "get",
-        url: url,
-    }).then(response => {
-        const db = getDatabase();
-        const newData = ref(db, "prices/" + originalRequestDateString);
-        set(newData, response.data.Valute);
-        // console.log("curr", response);
+    try {
+        const response = await axios({
+            method: "get",
+            url: url,
+        });
+        const db = getFirestore();
+        const latestData = doc(db, "prices", originalRequestDateString);
+        await setDoc(latestData, response.data.Valute);
         return response.data.Valute;
-    }).catch(ex => {
+    } catch (ex) {
         console.log(ex);
         date.setDate(date.getDate() - 1);
-        getPriceFromArchive(date, trialsLeft - 1, originalRequestDateString);
-    });
+        await getPriceFromArchive(date, trialsLeft - 1, originalRequestDateString);
+    };
 }
 
-export default function (date = new Date(), receivedDataCallback, trialsLeft = 5) {
+export default async function (date = new Date(), receivedDataCallback, trialsLeft = 5) {
 
     // console.log(date);
     let tzoffset = date.getTimezoneOffset() * 60000; //offset in milliseconds
     let formatDate = (new Date(date.getTime() - tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-');
-
-    const user = getAuth().currentUser;
-
-    const uid = user.uid;
-    const db = getDatabase();
-    const latestData = ref(db, "prices/" + formatDate);
-    onValue(latestData, (snapshot) => {
-        let result = {};
-        // console.log("getcurrsnap", latestData);
-        if (snapshot.val()) {
-            snapshot.forEach((childSnapshot) => {
-                // console.log(childSnapshot.key);
-                result[childSnapshot.key] = childSnapshot.val();
-                // console.log(childSnapshot.val());
-            });
-            receivedDataCallback(result);
-        } else {
-            console.log("plan b");
-            getPriceFromArchive(date, trialsLeft, formatDate);
-        }
-    });
+    
+    const db = getFirestore();
+    const latestData = await getDoc(doc(db, "prices", formatDate));
+    
+    if (latestData.exists()) {
+        receivedDataCallback(latestData.data());
+    } else {
+        console.log("plan b");
+        const archivedData = await getPriceFromArchive(date, trialsLeft, formatDate);
+        receivedDataCallback(archivedData);
+    }
 }

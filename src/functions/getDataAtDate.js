@@ -2,26 +2,23 @@ import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy, 
 
 import { getAuth } from "firebase/auth";
 
-
-let tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
-
 function isToday(someDate) {
-    const today = new Date(new Date().getTime() + tzoffset);
+    const today = new Date();
     return someDate.getDate() == today.getDate() 
         && someDate.getMonth() == today.getMonth()
         && someDate.getFullYear() == today.getFullYear();
 }
 
-export default async function(date, receivedDataCallback) {
+export default async function(date) {
 
     const user = getAuth().currentUser;
 
     const uid = user.uid;
-    let dateFormatted = isToday(date) ? "latest" : date.toISOString().replace(/T.*/,'').split('-').join('-');
     const db = getFirestore();
 
     let result = {};
     const accounts = await getDocs(query(collection(db, "accounts"), where("owner", "==", uid))); 
+    console.log(isToday(date), date);
     if (isToday(date)) {
         for (let acc of accounts.docs) {
 
@@ -65,6 +62,7 @@ export default async function(date, receivedDataCallback) {
         }
 
     }
-    receivedDataCallback(result);
+
+    return result;
     
 }

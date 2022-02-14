@@ -102,6 +102,8 @@ import getDataAtDate from "./../functions/getDataAtDate";
 // @ts-ignore
 import getCurrencyPrices from "./../functions/getCurrencyPrices";
 // @ts-ignore
+import currentTime from "./../functions/getCurrentTime";
+// @ts-ignore
 import currency from "./../util/currency.json";
 
 
@@ -110,15 +112,15 @@ const selected = ref("");
 const sumInput = ref(null);
 // const dateOfCapital = ref(new Date().toISOString().replace(/T.*/,'').split('-').join('-'));
 
-let tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
-const maxDate = (new Date(new Date().getTime() + tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-');
+const maxDate = currentTime.getStandardDateString();
+console.log("maxDate", currentTime.getTimeFromString(currentTime.getStandardDateString()), new Date(currentTime.getStandardDateString()));
 
 // let requestFormatDate = (new Date(new Date(date).getTime() - tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-');
 let inputFormData = reactive({
   accountName: undefined,
   value: undefined,
   currency: "RUR",
-  dateOfCapital: (new Date(new Date().getTime() + tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-'),
+  dateOfCapital: currentTime.getStandardDateString(),
 });
 
 let data = reactive({
@@ -149,60 +151,65 @@ let sum = computed(() => {
 });
 
 async function send() {
-    if (inputFormData.accountName !== selected.value && !confirm(`Создать новый счёт ${inputFormData.accountName}?`)) {
+    if (!Object.keys(data.accounts).includes(inputFormData.accountName) && !confirm(`Создать новый счёт ${inputFormData.accountName}?`)) {
       return;
     }
-    if (inputFormData.value === data.accounts[inputFormData.accountName].value) {
+    if (data.accounts[inputFormData.accountName] && inputFormData.value === data.accounts[inputFormData.accountName].value) {
       return console.log("equals");
     }
     await sendData(inputFormData);
-    await getDataAtDate(new Date(new Date(inputFormData.dateOfCapital).getTime() + tzoffset), dataLoadCallback);
-    selected.value = inputFormData.accountName;
+    const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
+    dataLoadCallback(result);
+    // selected.value = data.accounts[inputFormData.accountName];
+    applySelected(inputFormData.accountName);
     inputFormData.accountId = data.accounts[inputFormData.accountName].account;
 }
 
 function applySelected(account: any) {
   console.log(account, data.accounts[account]);
+  selected.value = account;
+
   inputFormData.value = data.accounts[account].value;
   inputFormData.currency = data.accounts[account].currency;
   inputFormData.accountId = data.accounts[account]["account"];
   inputFormData.accountName = account;
-  selected.value = inputFormData.accountName;
   sumInput.value.focus();
 }
 
 function dataLoadCallback(result) {
   console.log("res", result);
   data.accounts = result;
+  if (Object.values(data.accounts).some(item => item.currency !== "RUR" && item.value)) {
+    getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital), (newPrices) => {
+      console.log("loading prices", newPrices);
+      data.prices = newPrices;
+    });
+  }
   includeInSum.value = Object.keys(data.accounts);
 }
 
-// getCurrencyPrices(new Date(), (newPrices) => {
-//   data.prices = newPrices;
-// });
 
 function accountNameChanged() {
   if (inputFormData.accountName != selected) {
     selected.value = "";
     inputFormData.value = undefined;
+    inputFormData.accountId = undefined;
   }
   if (Object.keys(data.accounts).includes(inputFormData.accountName)) {
     applySelected(inputFormData.accountName);
-    selected.value = inputFormData.accountName;
+    // selected.value = data.accounts[inputFormData.accountName];
   }
 }
 
-function getDataAtDateOfCapital() {
+async function getDataAtDateOfCapital() {
   inputFormData.value = undefined;
   inputFormData.currency = undefined;
   inputFormData.accountName = undefined;
   inputFormData.accountId = undefined;
-  selected.value = "";
+  // selected.value = {};
   data.prices = undefined;
-  getDataAtDate(new Date(new Date(inputFormData.dateOfCapital).getTime() + tzoffset), dataLoadCallback);
-  // getCurrencyPrices(new Date(inputFormData.dateOfCapital), (newPrices) => {
-  //   data.prices = newPrices;
-  // });
+  const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
+  dataLoadCallback(result);
 }
 
 function valueChanged() {
@@ -219,10 +226,11 @@ async function changeName(accountId) {
   let newData = {name: newName};
   console.log("newData", newData);
   await updateAccountInfo(accountId, newData);
-  getDataAtDate(new Date(new Date(inputFormData.dateOfCapital).getTime() + tzoffset), dataLoadCallback);
+  const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
+  dataLoadCallback(result);
 }
 
-getDataAtDate(new Date(new Date().getTime() + tzoffset), dataLoadCallback);
+getDataAtDate(new Date()).then(result => dataLoadCallback(result));
 </script>
 
 

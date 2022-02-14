@@ -1,10 +1,11 @@
 import { getFirestore, collection, query, where, addDoc, doc, getDoc, getDocs, updateDoc} from "firebase/firestore"; 
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+// @ts-ignore
+import currentTime from "./../functions/getCurrentTime";
 
-let tzoffset = new Date().getTimezoneOffset() * 60000; //offset in milliseconds
 
 function isToday(someDate) {
-    const today = new Date(new Date(new Date()).getTime() + tzoffset);
+    const today = new Date();
     return someDate.getDate() == today.getDate() 
         && someDate.getMonth() == today.getMonth()
         && someDate.getFullYear() == today.getFullYear();
@@ -18,7 +19,7 @@ export default async function(data) {
     const uid = user.uid;
     const db = getFirestore();
 
-    let inputDateSnapshot = new Date(new Date(data.dateOfCapital).getTime() + tzoffset);
+    let inputDateSnapshot = currentTime.getTimeFromString(data.dateOfCapital);
     // const docRef = doc(db, "accounts", data.accountId);
     // getDoc(docRef).then(account => {
     if (!data.accountId) {
