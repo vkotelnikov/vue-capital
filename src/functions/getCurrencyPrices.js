@@ -4,7 +4,6 @@ import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, o
 import axios from "axios";
 
 async function getPriceFromArchive(date, trialsLeft = 5, originalRequestDateString) {
-    console.log("plan b");
     if (trialsLeft < 1) {
         return;
     }
@@ -28,7 +27,7 @@ async function getPriceFromArchive(date, trialsLeft = 5, originalRequestDateStri
     };
 }
 
-export default async function (date = new Date(), receivedDataCallback, trialsLeft = 5) {
+export default async function (date = new Date(), trialsLeft = 5) {
 
     // console.log(date);
     let tzoffset = date.getTimezoneOffset() * 60000; //offset in milliseconds
@@ -38,10 +37,9 @@ export default async function (date = new Date(), receivedDataCallback, trialsLe
     const latestData = await getDoc(doc(db, "prices", formatDate));
     
     if (latestData.exists()) {
-        receivedDataCallback(latestData.data());
+        return latestData.data();
     } else {
         console.log("plan b");
-        const archivedData = await getPriceFromArchive(date, trialsLeft, formatDate);
-        receivedDataCallback(archivedData);
+        return await getPriceFromArchive(date, trialsLeft, formatDate);
     }
 }

@@ -22,6 +22,8 @@ import 'chartjs-adapter-moment';
 // @ts-ignore
 import getPeriodicData from "./../functions/getPeriodicData";
 import currentTime from "./../functions/getCurrentTime";
+// @ts-ignore
+import getCurrencyPrices from "./../functions/getCurrencyPrices";
 
 Chart.register(...registerables);
 
@@ -111,8 +113,21 @@ const chartOptions = {
     },
 }
 
+async function loadPrices(result) {
+  for (const date of Object.values(result)) {
+    const values = Object.values(date);
+    if (values.some((acc) => acc.currency !== "RUR")) {
+      let result = await getCurrencyPrices(new Date(values[0].date.seconds * 1000));
+      for (const account of values) {
+        if (account.currency != "RUR") {
+          account.value *= result[account.currency].Value;
+        }
+      }
+    }
+  }
+}
 
-function updateData() {
+async function updateData() {
   let leadLabelDate = currentTime.getTimeFromString(data.startDate);
   data.datePoints = {};
   while(leadLabelDate <= currentTime.getTimeFromString(data.endDate)) {
@@ -123,48 +138,50 @@ function updateData() {
   if (! (data.startDate && data.endDate)) {
     return;
   }
-  getPeriodicData((result, accountNames) => {
-    // data.result = result;
+  const result = await getPeriodicData(currentTime.getTimeFromString(data.startDate), data.endDate && currentTime.getTimeFromString(data.endDate));// data.result = result;
     
-    // if(result) return console.log("resSS", result);
-    let accounts = {};
-    // accountNames.forEach(key => accounts[key] = {currency: "rur", value: 0});
-    // console.log("spread", accounts);
-    let newDatasets = {};
+  // if(result) return console.log("resSS", result);
+
+  await loadPrices(result);
+
+  let accounts = {};
+  // accountNames.forEach(key => accounts[key] = {currency: "rur", value: 0});
+  // console.log("spread", accounts);
+  let newDatasets = {};
 // console.log("keys",Object.keys(data.datePoints));
-    let colorIndex = 0;
-    Object.keys(data.datePoints).forEach(datePoint => {
+  let colorIndex = 0;
+  Object.keys(data.datePoints).forEach(datePoint => {
 
-      if(result[datePoint]) {
-        Object.keys(result[datePoint]).forEach(acc => {
-          accounts[acc] = result[datePoint][acc];
-        });
+    if(result[datePoint]) {
+      Object.keys(result[datePoint]).forEach(acc => {
+        accounts[acc] = result[datePoint][acc];
+      });
+    }
+    
+    Object.keys(accounts).forEach(accountName => {
+
+      if(!newDatasets[accountName]) {
+        // let color = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`;
+        newDatasets[accountName] = {
+          label: accountName,
+          borderColor: COLORS[colorIndex],
+          backgroundColor: COLORS[colorIndex],
+          fill: "stack",
+          borderWidth: 1,
+          spanGaps: true,
+          parsing: false,
+          data: []
+        };
+        colorIndex++;
       }
-      
-      Object.keys(accounts).forEach(accountName => {
-
-        if(!newDatasets[accountName]) {
-          // let color = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`;
-          newDatasets[accountName] = {
-            label: accountName,
-            borderColor: COLORS[colorIndex],
-            backgroundColor: COLORS[colorIndex],
-            fill: "stack",
-            borderWidth: 1,
-            spanGaps: true,
-            parsing: false,
-            data: []
-          };
-          colorIndex++;
-        }
-        newDatasets[accountName]["data"].push({
-          x: currentTime.getTimeFromString(datePoint).getTime(), 
-          y: Number.parseFloat(accounts[accountName].value)
-        });
+      newDatasets[accountName]["data"].push({
+        x: currentTime.getTimeFromString(datePoint).getTime(), 
+        y: Number.parseFloat(accounts[accountName].value)
       });
     });
-    data.accountDatasets = newDatasets;
-  }, currentTime.getTimeFromString(data.startDate), data.endDate && currentTime.getTimeFromString(data.endDate));
+  });
+  data.accountDatasets = newDatasets;
+
 }
 
 </script>

@@ -159,7 +159,7 @@ async function send() {
     }
     await sendData(inputFormData);
     const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
-    dataLoadCallback(result);
+    await dataLoadCallback(result);
     // selected.value = data.accounts[inputFormData.accountName];
     applySelected(inputFormData.accountName);
     inputFormData.accountId = data.accounts[inputFormData.accountName].account;
@@ -176,14 +176,12 @@ function applySelected(account: any) {
   sumInput.value.focus();
 }
 
-function dataLoadCallback(result) {
+async function dataLoadCallback(result) {
   console.log("res", result);
   data.accounts = result;
   if (Object.values(data.accounts).some(item => item.currency !== "RUR" && item.value)) {
-    getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital), (newPrices) => {
-      console.log("loading prices", newPrices);
-      data.prices = newPrices;
-    });
+    const newPrices = await getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital));
+    data.prices = newPrices;
   }
   includeInSum.value = Object.keys(data.accounts);
 }
@@ -209,7 +207,7 @@ async function getDataAtDateOfCapital() {
   // selected.value = {};
   data.prices = undefined;
   const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
-  dataLoadCallback(result);
+  await dataLoadCallback(result);
 }
 
 function valueChanged() {
@@ -231,7 +229,7 @@ async function changeName(accountId) {
   console.log("newData", newData);
   await updateAccountInfo(accountId, newData);
   const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
-  dataLoadCallback(result);
+  await dataLoadCallback(result);
 }
 
 getDataAtDate(new Date()).then(result => dataLoadCallback(result));

@@ -2,7 +2,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import currentTime from "./../functions/getCurrentTime";
 import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy, limit } from "firebase/firestore";
 
-export default async function(receivedDataCallback, startDate, endDate = new Date()) {
+export default async function(startDate, endDate = new Date()) {
 
     const user = getAuth().currentUser;
 
@@ -28,8 +28,9 @@ export default async function(receivedDataCallback, startDate, endDate = new Dat
             limit(1));
         const snapshotBeforeStartDate = await getDocs(qPrev); 
         if (!snapshotBeforeStartDate.empty) {
-            console.log("pp", snapshotBeforeStartDate.docs[0].data());
+            // console.log("pp", snapshotBeforeStartDate.docs[0].data());
             result[startDateFormatted][acc.data().name] = snapshotBeforeStartDate.docs[0].data();
+            result[startDateFormatted][acc.data().name].currency = acc.data().currency;
         }
 
         const q = query(collection(db, "snapshots"), 
@@ -45,7 +46,7 @@ export default async function(receivedDataCallback, startDate, endDate = new Dat
             // const snap = await getDoc(accAtDate);
             // console.log("dateSnap", accAtDate.data());
 
-            console.log(accAtDate.data(), accAtDate.data().date);
+            // console.log(accAtDate.data(), accAtDate.data().date);
             if(! result[currentTime.getStandardDateString(new Date(accAtDate.data().date.seconds * 1000))]) {
                 result[currentTime.getStandardDateString(new Date(accAtDate.data().date.seconds * 1000))] = {};
             }
@@ -54,9 +55,10 @@ export default async function(receivedDataCallback, startDate, endDate = new Dat
             }
             
             result[currentTime.getStandardDateString(new Date(accAtDate.data().date.seconds * 1000))][acc.data().name] = accAtDate.data();               
+            result[currentTime.getStandardDateString(new Date(accAtDate.data().date.seconds * 1000))][acc.data().name].currency = acc.data().currency;
 
         }
     }
-    receivedDataCallback(result, undefined);
+    return result;
     
 }

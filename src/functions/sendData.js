@@ -2,6 +2,8 @@ import { getFirestore, collection, query, where, addDoc, doc, getDoc, getDocs, u
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 // @ts-ignore
 import currentTime from "./../functions/getCurrentTime";
+// @ts-ignore
+import getCurrencyPrices from "./../functions/getCurrencyPrices";
 
 
 function isToday(someDate) {
@@ -22,6 +24,7 @@ export default async function(data) {
     let inputDateSnapshot = currentTime.getTimeFromString(data.dateOfCapital);
     // const docRef = doc(db, "accounts", data.accountId);
     // getDoc(docRef).then(account => {
+    getCurrencyPrices(inputDateSnapshot);
     if (!data.accountId) {
         const newAccRef = await addDoc(collection(db, "accounts"), {
             name: data.accountName,

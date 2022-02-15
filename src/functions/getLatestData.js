@@ -1,7 +1,7 @@
 import getDataAtDate from "./getDataAtDate";
 
-export default function(receivedDataCallback) {
+export default function() {
 
-    getDataAtDate(new Date, receivedDataCallback);
+    getDataAtDate(new Date());
     
 }
