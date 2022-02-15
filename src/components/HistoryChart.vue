@@ -4,11 +4,11 @@
   <div class="row align-items-center">
     <label for="dateFrom" class="col-3 col-lg-1 col-form-label">Дата от</label>
     <div class="col-auto col-lg-2 px-0">
-      <input id="dateFrom" type="date" class="form-control form-control-sm" v-model="data.startDate" @change="updateData"/>
+      <input id="dateFrom" type="date" class="form-control form-control-sm" v-model="data.startDate" :max="data.endDate" @change="updateData"/>
     </div>
     <label for="dateTo" class="col-1 col-lg-auto col-form-label">до</label>
     <div class="col-4 col-lg-2">
-      <input id="dateTo" type="date" class="form-control form-control-sm" v-model="data.endDate" :max="maxDate" @change="updateData"/>
+      <input id="dateTo" type="date" class="form-control form-control-sm" v-model="data.endDate" :min="data.startDate" :max="maxDate" @change="updateData"/>
     </div>
   </div>
   <LineChart :chartData="chartData" :options="chartOptions"/>
@@ -117,10 +117,10 @@ async function loadPrices(result) {
   for (const date of Object.values(result)) {
     const values = Object.values(date);
     if (values.some((acc) => acc.currency !== "RUR")) {
-      let result = await getCurrencyPrices(new Date(values[0].date.seconds * 1000));
+      let currRes = await getCurrencyPrices(new Date(values[0].date.seconds * 1000));
       for (const account of values) {
         if (account.currency != "RUR") {
-          account.value *= result[account.currency].Value;
+          account.value *= currRes[account.currency].Value;
         }
       }
     }
@@ -134,7 +134,7 @@ async function updateData() {
     data.datePoints[currentTime.getStandardDateString(leadLabelDate)] = {};
     leadLabelDate.setDate(leadLabelDate.getDate() + 1);
   }
-  console.log("datapoints", data.datePoints);
+  // console.log("datapoints", data.datePoints);
   if (! (data.startDate && data.endDate)) {
     return;
   }

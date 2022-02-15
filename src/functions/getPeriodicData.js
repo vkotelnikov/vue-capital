@@ -28,7 +28,6 @@ export default async function(startDate, endDate = new Date()) {
             limit(1));
         const snapshotBeforeStartDate = await getDocs(qPrev); 
         if (!snapshotBeforeStartDate.empty) {
-            // console.log("pp", snapshotBeforeStartDate.docs[0].data());
             result[startDateFormatted][acc.data().name] = snapshotBeforeStartDate.docs[0].data();
             result[startDateFormatted][acc.data().name].currency = acc.data().currency;
         }
@@ -39,7 +38,7 @@ export default async function(startDate, endDate = new Date()) {
             where("date", "<", endDate)
         );
 
-        console.log(acc.data().name, acc.data());
+        // console.log(acc.data().name, acc.data());
 
         const accountsInPeriod = await getDocs(q); 
         for (let accAtDate of accountsInPeriod.docs) {
@@ -52,6 +51,7 @@ export default async function(startDate, endDate = new Date()) {
             }
             if (!result[startDateFormatted][acc.data().name]) {
                 result[startDateFormatted][acc.data().name] = accAtDate.data();
+                result[startDateFormatted][acc.data().name].currency = acc.data().currency;
             }
             
             result[currentTime.getStandardDateString(new Date(accAtDate.data().date.seconds * 1000))][acc.data().name] = accAtDate.data();               

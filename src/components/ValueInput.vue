@@ -113,7 +113,7 @@ const sumInput = ref(null);
 // const dateOfCapital = ref(new Date().toISOString().replace(/T.*/,'').split('-').join('-'));
 
 const maxDate = currentTime.getStandardDateString();
-console.log("maxDate", currentTime.getTimeFromString(currentTime.getStandardDateString()), new Date(currentTime.getStandardDateString()));
+// console.log("maxDate", currentTime.getTimeFromString(currentTime.getStandardDateString()), new Date(currentTime.getStandardDateString()));
 
 // let requestFormatDate = (new Date(new Date(date).getTime() - tzoffset)).toISOString().replace(/T.*/, '').split('-').join('-');
 let inputFormData = reactive({
@@ -166,7 +166,7 @@ async function send() {
 }
 
 function applySelected(account: any) {
-  console.log(account, data.accounts[account]);
+  // console.log(account, data.accounts[account]);
   selected.value = account;
 
   inputFormData.value = data.accounts[account].value;
@@ -177,7 +177,7 @@ function applySelected(account: any) {
 }
 
 async function dataLoadCallback(result) {
-  console.log("res", result);
+  // console.log("res", result);
   data.accounts = result;
   if (Object.values(data.accounts).some(item => item.currency !== "RUR" && item.value)) {
     const newPrices = await getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital));
@@ -223,10 +223,10 @@ async function changeName(accountId) {
     alert("Cчёт " + newName + " уже существует");
     return;
   }
-  console.log(newName);
-  console.log(accountId);
+  // console.log(newName);
+  // console.log(accountId);
   let newData = {name: newName};
-  console.log("newData", newData);
+  // console.log("newData", newData);
   await updateAccountInfo(accountId, newData);
   const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
   await dataLoadCallback(result);
