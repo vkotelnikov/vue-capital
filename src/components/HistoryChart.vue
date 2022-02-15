@@ -21,6 +21,7 @@ import { Chart, registerables } from "chart.js";
 import 'chartjs-adapter-moment';
 // @ts-ignore
 import getPeriodicData from "./../functions/getPeriodicData";
+import currentTime from "./../functions/getCurrentTime";
 
 Chart.register(...registerables);
 
@@ -112,12 +113,13 @@ const chartOptions = {
 
 
 function updateData() {
-  let leadLabelDate = new Date(data.startDate);
+  let leadLabelDate = currentTime.getTimeFromString(data.startDate);
   data.datePoints = {};
-  while(leadLabelDate <= new Date(data.endDate)) {
-    data.datePoints[(leadLabelDate.toISOString().replace(/T.*/,'').split('-').join('-'))] = {};
-    leadLabelDate.setDate(leadLabelDate.getDate()+1);
+  while(leadLabelDate <= currentTime.getTimeFromString(data.endDate)) {
+    data.datePoints[currentTime.getStandardDateString(leadLabelDate)] = {};
+    leadLabelDate.setDate(leadLabelDate.getDate() + 1);
   }
+  console.log("datapoints", data.datePoints);
   if (! (data.startDate && data.endDate)) {
     return;
   }
@@ -155,11 +157,11 @@ function updateData() {
           };
           colorIndex++;
         }
-        newDatasets[accountName]["data"].push({x: new Date(datePoint).getTime() - (3 * 3600000), y: Number.parseFloat(accounts[accountName].value)});
+        newDatasets[accountName]["data"].push({x: currentTime.getTimeFromString(datePoint).getTime(), y: Number.parseFloat(accounts[accountName].value)});
       });
     });
     data.accountDatasets = newDatasets;
-  }, new Date(data.startDate), data.endDate && new Date(data.endDate));
+  }, currentTime.getTimeFromString(data.startDate), data.endDate && currentTime.getTimeFromString(data.endDate));
 }
 
 </script>
