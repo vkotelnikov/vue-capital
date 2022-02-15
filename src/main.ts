@@ -19,9 +19,9 @@ import { createApp } from 'vue';
 import App from './App.vue';
 
 const auth = getAuth(fireBaseApp);
-connectAuthEmulator(auth, "http://localhost:3099");
+// connectAuthEmulator(auth, "http://localhost:3099");
 const db = getFirestore();
-connectFirestoreEmulator(db, 'localhost', 3010);
+// connectFirestoreEmulator(db, 'localhost', 3010);
 onAuthStateChanged(auth, (user) => {
   if (user) {
     //   console.log(user);

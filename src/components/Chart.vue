@@ -28,7 +28,7 @@ const chartData = computed(() => {
       data[key] = item.value;
       continue;
     }
-    getCurrencyPrices(props.isLatest ? new Date() : new Date(item.date), (res) => {
+    getCurrencyPrices(props.isLatest ? new Date() : new Date(item.date)).then((res) => {
       let inRub = Number.parseFloat(item.value) * (res[item?.currency?.toUpperCase()]?.Value || 1);
       data[key] = inRub;
     });

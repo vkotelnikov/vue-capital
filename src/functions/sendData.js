@@ -24,7 +24,9 @@ export default async function(data) {
     let inputDateSnapshot = currentTime.getTimeFromString(data.dateOfCapital);
     // const docRef = doc(db, "accounts", data.accountId);
     // getDoc(docRef).then(account => {
-    getCurrencyPrices(inputDateSnapshot);
+    if (data.currency !== "RUR") {
+        getCurrencyPrices(inputDateSnapshot);
+    }
     if (!data.accountId) {
         const newAccRef = await addDoc(collection(db, "accounts"), {
             name: data.accountName,
