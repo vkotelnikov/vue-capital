@@ -43,8 +43,8 @@ export default async function(data) {
         });
         console.log("Latest snapshot written with ID: ", docRef.id);
     } else {
+        const accRef = doc(db, "accounts", data.accountId);
         if (isToday(inputDateSnapshot)) {
-            const accRef = doc(db, "accounts", data.accountId);
 
             const account = await getDoc(accRef);
 
@@ -76,13 +76,21 @@ export default async function(data) {
 
             const accountsAtDate = await getDocs(q);
             if (accountsAtDate.empty) {
-                addDoc(collection(db, "snapshots"), {
+                const newSnapRef = await addDoc(collection(db, "snapshots"), {
                     value: data.value,
                     account: data.accountId,
                     date: inputDateSnapshot,
                 });
+                const account = await getDoc(accRef);
+    
+                const latestSnapshot = await getDoc(doc(db, "snapshots", account.data().latestSnapshot));
+                if(inputDateSnapshot > new Date(latestSnapshot.data().date.seconds * 1000)) {
+                    updateDoc(accRef, {
+                        latestSnapshot: newSnapRef.id,
+                    });
+                }
             } else {
-                updateDoc(accountsAtDate.docs[0].ref, {
+                await updateDoc(accountsAtDate.docs[0].ref, {
                     value: data.value,
                 });
             }
