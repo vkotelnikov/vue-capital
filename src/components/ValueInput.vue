@@ -221,6 +221,10 @@ async function changeName(accountId) {
   if (!newName) {
     return;
   }
+  if (Object.keys(data.accounts).includes(newName)) {
+    alert("Cчёт " + newName + " уже существует");
+    return;
+  }
   console.log(newName);
   console.log(accountId);
   let newData = {name: newName};
