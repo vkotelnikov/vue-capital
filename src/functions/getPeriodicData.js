@@ -21,19 +21,24 @@ export default async function(receivedDataCallback, startDate, endDate = new Dat
     result[startDateFormatted] = {};
     for (let acc of accounts.docs) {
 
+        const qPrev = query(collection(db, "snapshots"), 
+            where("account", "==", acc.id), 
+            where("date", "<", startDate), 
+            orderBy("date", "desc"), 
+            limit(1));
+        const snapshotBeforeStartDate = await getDocs(qPrev); 
+        if (!snapshotBeforeStartDate.empty) {
+            console.log("pp", snapshotBeforeStartDate.docs[0].data());
+            result[startDateFormatted][acc.data().name] = snapshotBeforeStartDate.docs[0].data();
+        }
+
         const q = query(collection(db, "snapshots"), 
             where("account", "==", acc.id), 
             where("date", ">=", startDate),
             where("date", "<", endDate)
-            // , 
-            // orderBy("date", "desc")
         );
-        
+
         console.log(acc.data().name, acc.data());
-        if (!result[startDateFormatted]) {
-            result[startDateFormatted] = {};
-            // result[startDateFormatted] = dateData.val()[accountName];
-        }
 
         const accountsInPeriod = await getDocs(q); 
         for (let accAtDate of accountsInPeriod.docs) {
@@ -53,54 +58,5 @@ export default async function(receivedDataCallback, startDate, endDate = new Dat
         }
     }
     receivedDataCallback(result, undefined);
-
-    // onValue(latestDataAccounts, (latestSnapshot) => {
-    //     // let accountNames = [];
-    //     // console.log("snap",latestSnapshot);
-    //     // let filteredLatest = {};
-    //     let filteredPrev = {};
-    //     latestSnapshot.forEach(latestAccount => {
-    //         let latestAccountData = latestAccount.val();
-    //         if (latestAccountData.date && ((new Date(latestAccountData.date)) < startDate)) {
-    //             filteredPrev[latestAccount.key] = latestAccountData;
-    //             return;
-    //         }
-    //     });
-        
-    //     const periodicData = query(ref(db, "capital/" + uid), startAt(startDateFormatted), endAt(endDateFormatted), orderByKey());
-
-    //     let firstDate = true;
-
-    //     // console.log("step1", filteredPrev);
-    //     onValue(periodicData, (accountsAtDate) => {
-
-    //         let result = {};
-    //         // console.log(filteredLatest);
-    //         result[startDateFormatted] = {};
-    //         if (firstDate) {
-    //             result[startDateFormatted] = filteredPrev;
-    //             firstDate = false;
-    //         }
-    //         accountsAtDate.forEach((dateData) => {
-    //             if (!dateData.val()) {
-    //                 return console.log("No data found at " + dateData.key);
-    //             }
-
-    //             // console.log("val",dateData.key,dateData.val());
-    //             if(! result[dateData.key]) {
-    //                 result[dateData.key] = {};
-    //             }
-    //             Object.keys(dateData.val()).forEach(accountName => {
-    //                 if (!result[startDateFormatted][accountName]) {
-    //                     result[startDateFormatted][accountName] = dateData.val()[accountName];
-    //                 }
-    //                 result[dateData.key][accountName] = dateData.val()[accountName];
-    //             });
-    //         });
-            
-    //         receivedDataCallback(result, undefined);
-    //     });
-    // });
-
     
 }

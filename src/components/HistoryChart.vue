@@ -157,7 +157,10 @@ function updateData() {
           };
           colorIndex++;
         }
-        newDatasets[accountName]["data"].push({x: currentTime.getTimeFromString(datePoint).getTime(), y: Number.parseFloat(accounts[accountName].value)});
+        newDatasets[accountName]["data"].push({
+          x: currentTime.getTimeFromString(datePoint).getTime(), 
+          y: Number.parseFloat(accounts[accountName].value)
+        });
       });
     });
     data.accountDatasets = newDatasets;
