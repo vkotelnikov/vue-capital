@@ -93,7 +93,7 @@ const chartOptions = {
     decimation: {
       enabled: true,
       algorithm: "lttb",
-      samples: 40,
+      samples: 60,
       threshold: 35
     },
     title: {

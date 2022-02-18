@@ -32,7 +32,7 @@
             </svg>
           </div>
           <div class="col-3 col-lg-2" @click="applySelected(key)">
-            {{account.value}} {{currency[account.currency]}}
+            {{formatValue(account.value, account.currency)}}
           </div>
           <div class="col-3 col-lg-2 text-center">
             <input type="checkbox" class="form-check-input" v-model="includeInSum" :value="key" />
@@ -44,7 +44,7 @@
             Сумма
           </div>
           <div class="col col-lg-2">
-            {{sum}} ₽
+            {{formatValue(sum)}}
           </div>
         </div>
 
@@ -134,7 +134,7 @@ let sum = computed(() => {
     sum += Number.parseFloat(acc.value || 0);
   });
 
-  return sum.toLocaleString();
+  return sum;
 });
 
 async function send() {
@@ -215,6 +215,22 @@ async function changeName(accountId) {
   await updateAccountInfo(accountId, newData);
   const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
   await dataLoadCallback(result);
+}
+
+const rurValueFormatter = new Intl.NumberFormat('ru-RU', { trailingZeroDisplay: "stripIfInteger", minimumFractionDigits: "0", maximumFractionDigits: "2"});
+const usdValueFormatter = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: "USD", trailingZeroDisplay: "stripIfInteger", minimumFractionDigits: "0", maximumFractionDigits: "2"});
+const eurValueFormatter = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: "EUR", trailingZeroDisplay: "stripIfInteger", minimumFractionDigits: "0", maximumFractionDigits: "2"});
+
+function formatValue(value, currency = "RUR") {
+  if (currency === "RUR") {
+    return rurValueFormatter.format(value) + " ₽";
+  }
+  if (currency === "USD") {
+    return usdValueFormatter.format(value);
+  }
+  if (currency === "EUR") {
+    return eurValueFormatter.format(value);
+  }
 }
 
 getDataAtDate(new Date()).then(result => dataLoadCallback(result));
