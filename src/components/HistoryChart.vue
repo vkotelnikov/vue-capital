@@ -4,19 +4,24 @@
   <div class="row align-items-center">
     <label for="dateFrom" class="col-3 col-lg-1 col-form-label">Дата от</label>
     <div class="col-auto col-lg-2 px-0">
-      <input id="dateFrom" type="date" class="form-control form-control-sm" v-model="data.startDate" :max="data.endDate" @change="updateData"/>
+      <input id="dateFrom" type="date" class="form-control form-control-sm" v-model="data.startDate" :max="data.endDate"/>
     </div>
     <label for="dateTo" class="col-1 col-lg-auto col-form-label">до</label>
     <div class="col-4 col-lg-2">
-      <input id="dateTo" type="date" class="form-control form-control-sm" v-model="data.endDate" :min="data.startDate" :max="maxDate" @change="updateData"/>
+      <input id="dateTo" type="date" class="form-control form-control-sm" v-model="data.endDate" :min="data.startDate" :max="maxDate"/>
     </div>
   </div>
-  <LineChart :chartData="chartData" :options="chartOptions"/>
+  <div class="row">
+    <div class="col">
+      <button type="button" class="btn btn-primary" @click="updateData">Построить график</button>
+    </div>
+  </div>
+  <LineChart ref="lineChart" :chartData="chartData" :options="chartOptions"/>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, defineProps, reactive, computed } from "vue";
-import { LineChart} from "vue-chart-3";
+import { LineChart } from "vue-chart-3";
 import { Chart, registerables } from "chart.js";
 import 'chartjs-adapter-moment';
 // @ts-ignore
@@ -27,17 +32,17 @@ import getCurrencyPrices from "./../functions/getCurrencyPrices";
 
 Chart.register(...registerables);
 
-let maxDate = new Date().toISOString().replace(/T.*/,'').split('-').join('-');
+let maxDate = currentTime.getStandardDateString(new Date());
+
+const chartData = {};
+
+const lineChart = ref();
 
 const data = reactive({
   startDate: undefined,
   endDate: maxDate,
-  result: {},
   datePoints: {},
-  accountsByDate: {},
-  accountDatasets: {},
 });
-
 
 const COLORS = [
   'rgba(255, 77, 77, 0.4)',
@@ -50,19 +55,10 @@ const COLORS = [
 
 ];
 
-let tzoffset = new Date().getTimezoneOffset() * 60000; 
-
-const chartData = computed(() => {
-  return {
-    // labels: Object.keys(data.datePoints).map(dp => new Date(dp).getTime()),
-    datasets: Object.values(data.accountDatasets),
-  }
-});
-
 const chartOptions = {
   animation: false,
   parsing: false,
-
+  normalized: true,
   scales: {
     y: {
       min:0,
@@ -71,9 +67,15 @@ const chartOptions = {
     x: {
       type: "time",
       time: {
-        unit: "day"
+        unit: "day",
+        ticks: {
+          source: 'auto',
+          // Disabled rotation for performance
+          maxRotation: 0,
+          autoSkip: true,
+        },
       },
-      samples: 30,
+      // samples: 10,
       // ticks: {
       //   // Include a dollar sign in the ticks
       //   callback: function(value, index, ticks) {
@@ -88,18 +90,12 @@ const chartOptions = {
     }
   },
   plugins: {
-    // decimation: {
-    //   enabled: true,
-    //   type: "lttb",
-    //   samples: 30,
-    //   threshold: 30
-    // },
-    // filler: {
-    //   propagate: false
-    // },
-    // 'samples-filler-analyser': {
-    //   target: 'chart-analyser'
-    // },
+    decimation: {
+      enabled: true,
+      algorithm: "lttb",
+      samples: 40,
+      threshold: 35
+    },
     title: {
         display: true,
         text: "Исторический график"
@@ -108,10 +104,10 @@ const chartOptions = {
       position: "nearest",
     },
   },
-    interaction: {
-      intersect: false,
-      mode: "x",
-    },
+  interaction: {
+    intersect: false,
+    mode: "x",
+  },
 }
 
 async function loadPrices(result) {
@@ -139,15 +135,13 @@ async function updateData() {
   if (! (data.startDate && data.endDate)) {
     return;
   }
-  const result = await getPeriodicData(currentTime.getTimeFromString(data.startDate), data.endDate && currentTime.getTimeFromString(data.endDate));// data.result = result;
+  const result = await getPeriodicData(currentTime.getTimeFromString(data.startDate), currentTime.getTimeFromString(data.endDate));
     
   // if(result) return console.log("resSS", result);
 
   await loadPrices(result);
 
   let accounts = {};
-  // accountNames.forEach(key => accounts[key] = {currency: "rur", value: 0});
-  // console.log("spread", accounts);
   let newDatasets = {};
 // console.log("keys",Object.keys(data.datePoints));
   let colorIndex = 0;
@@ -162,7 +156,6 @@ async function updateData() {
     Object.keys(accounts).forEach(accountName => {
 
       if(!newDatasets[accountName]) {
-        // let color = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`;
         newDatasets[accountName] = {
           label: accountName,
           borderColor: COLORS[colorIndex],
@@ -170,7 +163,6 @@ async function updateData() {
           fill: "stack",
           borderWidth: 1,
           spanGaps: true,
-          parsing: false,
           data: []
         };
         colorIndex++;
@@ -181,8 +173,13 @@ async function updateData() {
       });
     });
   });
-  data.accountDatasets = newDatasets;
+  chartData.datasets = Object.values(newDatasets);
+  refreshChart();
+}
 
+function refreshChart() {
+  lineChart.value.chartInstance.destroy();
+  lineChart.value.renderChart();
 }
 
 </script>
