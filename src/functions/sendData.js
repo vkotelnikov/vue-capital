@@ -53,7 +53,7 @@ export default async function(data) {
             const snapRef = doc(db, "snapshots", account.data().latestSnapshot);
 
             const snap = await getDoc(snapRef);
-            if (snap.exists()) {
+            if (snap.exists() && isToday(new Date(snap.data().date.seconds * 1000))) {
                 updateDoc(snapRef, {
                     value: data.value,
                 });

@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import * as firebaseui from "firebaseui";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore"; 
+import { initializeFirestore, getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from "firebase/firestore"; 
 import firebaseConfig from "./firebaseConfig.json";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
@@ -20,7 +20,24 @@ import App from './App.vue';
 
 const auth = getAuth(fireBaseApp);
 // connectAuthEmulator(auth, "http://localhost:3099");
+const firestoreDb = initializeFirestore(fireBaseApp, {
+  cacheSizeBytes: 3145728
+});
 const db = getFirestore();
+enableIndexedDbPersistence(db).then(()=> console.log("it's ok")).catch((err) => {
+      if (err.code == 'failed-precondition') {
+          // Multiple tabs open, persistence can only be enabled
+          // in one tab at a a time.
+          // ...
+          console.log("Multiple tabs open, persistence can only be enabled in one tab at a a time.")
+      } else if (err.code == 'unimplemented') {
+          // The current browser does not support all of the
+          // features required to enable persistence
+          // ...
+          console.log("The current browser does not support all of the features required to enable persistence");
+      }
+  });
+
 // connectFirestoreEmulator(db, 'localhost', 3010);
 onAuthStateChanged(auth, (user) => {
   if (user) {

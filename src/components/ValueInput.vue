@@ -7,15 +7,12 @@
             <input id="accountsDate" type="date" class="form-control w-auto" v-model="inputFormData.dateOfCapital" :max="maxDate" required @change="getDataAtDateOfCapital" />
           </div>
         </div>
-        <div class="row align-items-end mt-2">
-          <div class="col-4">
+        <div class="row mt-2 align-items-end">
+          <div class="col-6 col-lg-3">
             Счёт
           </div>
-          <div class="col-3">
+          <div class="col-3 col-lg-2">
             Сумма
-          </div>
-          <div class="col-2">
-            Валюта
           </div>
           <div class="col-3 col-lg-2">
             Включать в сумму
@@ -26,19 +23,16 @@
 
         <div class="row my-2" v-for="(account, key) in data.accounts" :key="key" :class="key == inputFormData.accountName && 'text-primary'">
 
-          <div class="col-4" >
-            <span @click="applySelected(key)">{{key + " "}}</span>
+          <div class="col-6 col-lg-3 text-nowrap" >
+            <span class="text-nowrap" @click="applySelected(key)">{{key + " "}}</span>
             
-            <svg @click="changeName(account.account)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+            <svg @click="changeName(account.account)" xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
               <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
               <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
             </svg>
           </div>
-          <div class="col-3" @click="applySelected(key)">
-            {{account.value}}
-          </div>
-          <div class="col-2" @click="applySelected(key)">
-            {{currency[account.currency]}}
+          <div class="col-3 col-lg-2" @click="applySelected(key)">
+            {{account.value}} {{currency[account.currency]}}
           </div>
           <div class="col-3 col-lg-2 text-center">
             <input type="checkbox" class="form-check-input" v-model="includeInSum" :value="key" />
@@ -46,23 +40,18 @@
 
         </div>
         <div class="row">
-          <div class="col-4">
+          <div class="col-6 col-lg-3">
             Сумма
           </div>
-          <div class="col-3">
-            {{sum}}
-          </div>
-          <div class="col-2">
-            Рубль
-          </div>
-          <div class="col-3 col-lg-2">
+          <div class="col col-lg-2">
+            {{sum}} ₽
           </div>
         </div>
 
         <div class="row mt-2">
           <label for="accountName" class="col-2 col-lg-1 col-form-label">Счёт</label>
           <div class="col col-lg-5">
-            <input id="accountName" list="datalistAccounts" class="form-control" type="text" required v-model="inputFormData.accountName" @input="accountNameChanged" />
+            <input id="accountName" list="datalistAccounts" class="form-control" type="text" required v-model="inputFormData.accountName" @input="accountNameChanged" maxlength="20"/>
             <datalist id="datalistAccounts">
               <option v-for="(account, key) in data.accounts">{{key}}</option>
             </datalist>
@@ -134,12 +123,9 @@ let sum = computed(() => {
   if( !data?.accounts) {
     return 0;
   }
-  Object.keys(data?.accounts).forEach(account => {
-    if (!includeInSum.value.includes(account)) {
-      return;
-    }
 
-    let acc = data.accounts[account];
+  includeInSum.value.forEach(element => {
+    let acc = data.accounts[element];
 
     if (acc.currency !== "RUR") {
       sum += Number.parseFloat(acc.value || 0) * (data.prices?.[acc?.currency]?.Value || 1);
@@ -147,6 +133,7 @@ let sum = computed(() => {
     }
     sum += Number.parseFloat(acc.value || 0);
   });
+
   return sum.toLocaleString();
 });
 
@@ -159,10 +146,7 @@ async function send() {
     }
     await sendData(inputFormData);
     const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
-    await dataLoadCallback(result);
-    // selected.value = data.accounts[inputFormData.accountName];
-    applySelected(inputFormData.accountName);
-    inputFormData.accountId = data.accounts[inputFormData.accountName].account;
+    dataLoadCallback(result);
 }
 
 function applySelected(account: any) {
@@ -179,11 +163,12 @@ function applySelected(account: any) {
 async function dataLoadCallback(result) {
   // console.log("res", result);
   data.accounts = result;
-  if (Object.values(data.accounts).some(item => item.currency !== "RUR" && item.value)) {
-    const newPrices = await getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital));
-    data.prices = newPrices;
-  }
   includeInSum.value = Object.keys(data.accounts);
+  if (Object.values(data.accounts).some(item => item.currency !== "RUR" && item.value)) {
+    getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital)).then(newPrices => {
+      data.prices = newPrices;
+    });
+  }
 }
 
 

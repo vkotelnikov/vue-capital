@@ -18,12 +18,17 @@ async function getPriceFromArchive(date, trialsLeft = 5, originalRequestDateStri
         });
         const db = getFirestore();
         const latestData = doc(db, "prices", originalRequestDateString);
-        await setDoc(latestData, response.data.Valute);
-        return response.data.Valute;
+
+        let prices = {
+            "USD": response.data.Valute.USD,
+            "EUR": response.data.Valute.EUR,
+        };
+        setDoc(latestData, prices);
+        return prices;
     } catch (ex) {
         console.log(ex);
         date.setDate(date.getDate() - 1);
-        await getPriceFromArchive(date, trialsLeft - 1, originalRequestDateString);
+        return await getPriceFromArchive(date, trialsLeft - 1, originalRequestDateString);
     };
 }
 

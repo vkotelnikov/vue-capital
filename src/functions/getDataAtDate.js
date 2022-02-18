@@ -1,4 +1,4 @@
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy, limit } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy, limit, onSnapshot } from "firebase/firestore";
 
 import { getAuth } from "firebase/auth";
 
