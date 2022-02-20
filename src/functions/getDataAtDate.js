@@ -18,7 +18,7 @@ export default async function(date) {
 
     let result = {};
     const accounts = await getDocs(query(collection(db, "accounts"), where("owner", "==", uid))); 
-    console.log(isToday(date), date);
+    // console.log(isToday(date), date);
     if (isToday(date)) {
         for (let acc of accounts.docs) {
 
