@@ -13,7 +13,7 @@
   </div>
   <div class="row">
     <div class="col">
-      <button type="button" class="btn btn-primary" @click="updateData">Построить график</button>
+      <button type="button" class="btn btn-primary" @click="updateData" :disabled="data.chartIsLoading">Построить график <span v-show="data.chartIsLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></button>
     </div>
   </div>
   <LineChart ref="lineChart" :chartData="chartData" :options="chartOptions"/>
@@ -42,6 +42,7 @@ const data = reactive({
   startDate: undefined,
   endDate: maxDate,
   datePoints: {},
+  chartIsLoading: false,
 });
 
 const COLORS = [
@@ -125,15 +126,16 @@ async function loadPrices(result) {
 }
 
 async function updateData() {
+  // console.log("datapoints", data.datePoints);
+  if (! (data.startDate && data.endDate)) {
+    return;
+  }
+  data.chartIsLoading = true;
   let leadLabelDate = currentTime.getTimeFromString(data.startDate);
   data.datePoints = {};
   while(leadLabelDate <= currentTime.getTimeFromString(data.endDate)) {
     data.datePoints[currentTime.getStandardDateString(leadLabelDate)] = {};
     leadLabelDate.setDate(leadLabelDate.getDate() + 1);
-  }
-  // console.log("datapoints", data.datePoints);
-  if (! (data.startDate && data.endDate)) {
-    return;
   }
   const result = await getPeriodicData(currentTime.getTimeFromString(data.startDate), currentTime.getTimeFromString(data.endDate));
     
@@ -175,6 +177,7 @@ async function updateData() {
   });
   chartData.datasets = Object.values(newDatasets);
   refreshChart();
+  data.chartIsLoading = false;
 }
 
 function refreshChart() {

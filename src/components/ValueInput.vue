@@ -11,19 +11,20 @@
           <div class="col-6 col-lg-3">
             Счёт
           </div>
-          <div class="col-3 col-lg-2">
+          <div class="col col-lg-2">
             Сумма
-          </div>
-          <div class="col-3 col-lg-2">
-            Включать в сумму
           </div>
         </div>
 
         <hr class="mt-0">
-
+        <div v-if="!data.accounts" class="text-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
         <div class="row my-2" v-for="(account, key) in data.accounts" :key="key" :class="key == inputFormData.accountName && 'text-primary'">
 
-          <div class="col-6 col-lg-3 text-nowrap" >
+          <div class="col-6 col-lg-3 text-nowrap">
             <span class="text-nowrap" @click="applySelected(key)">{{key + " "}}</span>
             
             <svg @click="changeName(account.account)" xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -31,20 +32,26 @@
               <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
             </svg>
           </div>
-          <div class="col-3 col-lg-2" @click="applySelected(key)">
+          <div class="col-4 col-lg-2" @click="applySelected(key)">
             {{formatValue(account.value, account.currency)}}
           </div>
-          <div class="col-3 col-lg-2 text-center">
+          <div class="col-2 col-lg-2 text-center">
             <input type="checkbox" class="form-check-input" v-model="includeInSum" :value="key" />
           </div>
 
         </div>
-        <div class="row">
-          <div class="col-6 col-lg-3">
+
+        <hr class="my-2">
+        
+        <div class="row my-2">
+          <div class="col col-lg-3">
             Сумма
           </div>
-          <div class="col col-lg-2">
+          <div class="col-auto col-lg-2">
             {{formatValue(sum)}}
+          </div>
+          <div class="col-2 text-center">
+            <input type="checkbox" class="form-check-input" checked disabled readonly/>
           </div>
         </div>
 
@@ -108,6 +115,7 @@ const maxDate = currentTime.getStandardDateString();
 let inputFormData = reactive({
   accountName: undefined,
   value: undefined,
+  accountId: undefined,
   currency: "RUR",
   dateOfCapital: currentTime.getStandardDateString(),
 });
@@ -163,6 +171,7 @@ function applySelected(account: any) {
 async function dataLoadCallback(result) {
   // console.log("res", result);
   data.accounts = result;
+  // console.log("dataloaded", new Date);
   includeInSum.value = Object.keys(data.accounts);
   if (Object.values(data.accounts).some(item => item.currency !== "RUR" && item.value)) {
     getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital)).then(newPrices => {
@@ -191,8 +200,9 @@ async function getDataAtDateOfCapital() {
   inputFormData.accountId = undefined;
   // selected.value = {};
   data.prices = undefined;
+  data.accounts = undefined;
   const result = await getDataAtDate(currentTime.getTimeFromString(inputFormData.dateOfCapital));
-  await dataLoadCallback(result);
+  dataLoadCallback(result);
 }
 
 function valueChanged() {
@@ -217,19 +227,19 @@ async function changeName(accountId) {
   await dataLoadCallback(result);
 }
 
-const rurValueFormatter = new Intl.NumberFormat('ru-RU', { trailingZeroDisplay: "stripIfInteger", minimumFractionDigits: "0", maximumFractionDigits: "2"});
-const usdValueFormatter = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: "USD", trailingZeroDisplay: "stripIfInteger", minimumFractionDigits: "0", maximumFractionDigits: "2"});
-const eurValueFormatter = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: "EUR", trailingZeroDisplay: "stripIfInteger", minimumFractionDigits: "0", maximumFractionDigits: "2"});
+const rurValueFormatter = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2});
+const usdValueFormatter = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 2});
+const eurValueFormatter = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 2});
 
 function formatValue(value, currency = "RUR") {
   if (currency === "RUR") {
-    return rurValueFormatter.format(value) + " ₽";
+    return rurValueFormatter.format(value || 0) + " ₽";
   }
   if (currency === "USD") {
-    return usdValueFormatter.format(value);
+    return usdValueFormatter.format(value || 0);
   }
   if (currency === "EUR") {
-    return eurValueFormatter.format(value);
+    return eurValueFormatter.format(value || 0);
   }
 }
 

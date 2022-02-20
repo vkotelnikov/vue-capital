@@ -35,8 +35,8 @@
   <label class="btn btn-primary" for="btn-check">{{isShowingHistoryChart ? "Скрыть" : "Показать" }} исторический график</label>
   <HistoryChart v-if="isShowingHistoryChart"></HistoryChart>
 
-<div class="text-end">
-  <a  href="https://www.cbr-xml-daily.ru/">Курсы ЦБ РФ в XML и JSON, API</a>
+  <div class="text-end">
+    <a href="https://www.cbr-xml-daily.ru/">Курсы ЦБ РФ в XML и JSON, API</a>
   </div>
 </div>
 </template>
