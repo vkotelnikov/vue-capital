@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import * as firebaseui from "firebaseui";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth";
-import { initializeFirestore, getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence } from "firebase/firestore"; 
+import { initializeFirestore, getFirestore, connectFirestoreEmulator, enableIndexedDbPersistence, collection, onSnapshot, where, query } from "firebase/firestore"; 
 import firebaseConfig from "./firebaseConfig.json";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
@@ -56,6 +56,8 @@ onAuthStateChanged(auth, (user) => {
         document.getElementById('cbr-daily')!.style.display = 'none';
     }
     // ...
+    const q = query(collection(db, "accounts"), where("owner", "==", uid));
+    onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {});
   } else {
       const uiConfig = {
         callbacks: {
