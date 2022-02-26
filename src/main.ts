@@ -25,18 +25,20 @@ const firestoreDb = initializeFirestore(fireBaseApp, {
 });
 const db = getFirestore();
 enableIndexedDbPersistence(db).then(()=> console.log("it's ok")).catch((err) => {
-      if (err.code == 'failed-precondition') {
-          // Multiple tabs open, persistence can only be enabled
-          // in one tab at a a time.
-          // ...
-          console.log("Multiple tabs open, persistence can only be enabled in one tab at a a time.")
-      } else if (err.code == 'unimplemented') {
-          // The current browser does not support all of the
-          // features required to enable persistence
-          // ...
-          console.log("The current browser does not support all of the features required to enable persistence");
-      }
-  });
+  if (err.code == 'failed-precondition') {
+      // Multiple tabs open, persistence can only be enabled
+      // in one tab at a a time.
+      // ...
+      console.log("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
+      document.getElementById('info')!.innerText = "Использование локального кэша невозможно из-за других открытых вкладок этого сайта";
+  } else if (err.code == 'unimplemented') {
+      // The current browser does not support all of the
+      // features required to enable persistence
+      // ...
+      console.log("The current browser does not support all of the features required to enable persistence");
+      document.getElementById('info')!.innerText = "Данный браузер не поддерживает локальный кэш";
+  }
+});
 
 // connectFirestoreEmulator(db, 'localhost', 3010);
 onAuthStateChanged(auth, (user) => {
@@ -55,9 +57,6 @@ onAuthStateChanged(auth, (user) => {
     if(document.getElementById('cbr-daily')) {
         document.getElementById('cbr-daily')!.style.display = 'none';
     }
-    // ...
-    const q = query(collection(db, "accounts"), where("owner", "==", uid));
-    onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {});
   } else {
       const uiConfig = {
         callbacks: {

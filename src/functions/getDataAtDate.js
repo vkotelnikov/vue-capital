@@ -1,4 +1,4 @@
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs, getDocsFromCache, doc, getDoc, getDocFromCache, orderBy, limit, onSnapshot } from "firebase/firestore";
 
 import { getAuth } from "firebase/auth";
 
@@ -10,7 +10,6 @@ function isToday(someDate) {
 }
 
 export default async function(date) {
-
     const user = getAuth().currentUser;
 
     const uid = user.uid;
@@ -23,8 +22,14 @@ export default async function(date) {
         for (let acc of accounts.docs) {
 
             // console.log("id", acc.id, acc.data());
-            const docRef = doc(db, "snapshots", acc.data().latestSnapshot);
-            const snap = await getDoc(docRef);
+            let snap;
+            try {
+                snap = await getDocFromCache(doc(db, "snapshots", acc.data().latestSnapshot));
+            } catch (ex) {
+                console.log("getting data from server");
+                snap = await getDoc(doc(db, "snapshots", acc.data().latestSnapshot));
+            }
+            // const snap =docRef);
 
             // console.log("snap", snap.data());
 
@@ -49,7 +54,15 @@ export default async function(date) {
                 where("date", "<", nextDay), 
                 orderBy("date", "desc"), 
                 limit(1));
-            const accountsAtDate = await getDocs(q); 
+        
+            
+            let accountsAtDate;
+            try {
+                accountsAtDate = await getDocsFromCache(q);
+            } catch(ex) {
+                console.log("getting data from server");
+                accountsAtDate = await getDocs(q);
+            }
             // console.log()
             for (let accAtDate of accountsAtDate.docs) {
                 // const snap = await getDoc(accAtDate);

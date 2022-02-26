@@ -171,7 +171,6 @@ function applySelected(account: any) {
 async function dataLoadCallback(result) {
   // console.log("res", result);
   data.accounts = result;
-  // console.log("dataloaded", new Date);
   includeInSum.value = Object.keys(data.accounts);
   if (Object.values(data.accounts).some(item => item.currency !== "RUR" && item.value)) {
     getCurrencyPrices(currentTime.getTimeFromString(inputFormData.dateOfCapital)).then(newPrices => {

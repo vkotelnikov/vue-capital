@@ -9,3 +9,4 @@ firebaseConfig.json
 public*
 .idea
 *.log
+.vscode
