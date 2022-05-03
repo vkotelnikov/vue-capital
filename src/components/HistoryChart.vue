@@ -69,20 +69,14 @@ const chartOptions = {
       type: "time",
       time: {
         unit: "day",
+        tooltipFormat: "ddd, DD-MM-yyyy",
         ticks: {
-          source: 'auto',
+          source: 'data',
           // Disabled rotation for performance
           maxRotation: 0,
-          autoSkip: true,
+          autoSkip: false,
         },
       },
-      // samples: 10,
-      // ticks: {
-      //   // Include a dollar sign in the ticks
-      //   callback: function(value, index, ticks) {
-      //       return '$' + Object.keys(data.datePoints)[index];
-      //   },
-      // }
     }
   },
   elements: {
@@ -139,7 +133,6 @@ async function updateData() {
   }
   const result = await getPeriodicData(currentTime.getTimeFromString(data.startDate), currentTime.getTimeFromString(data.endDate));
     
-  // if(result) return console.log("resSS", result);
 
   await loadPrices(result);
 
@@ -149,12 +142,13 @@ async function updateData() {
   let colorIndex = 0;
   Object.keys(data.datePoints).forEach(datePoint => {
 
+    let someDate = currentTime.getTimeFromString(datePoint).getTime();
+
     if(result[datePoint]) {
       Object.keys(result[datePoint]).forEach(acc => {
         accounts[acc] = result[datePoint][acc];
       });
     }
-    
     Object.keys(accounts).forEach(accountName => {
 
       if(!newDatasets[accountName]) {
@@ -170,7 +164,7 @@ async function updateData() {
         colorIndex++;
       }
       newDatasets[accountName]["data"].push({
-        x: currentTime.getTimeFromString(datePoint).getTime(), 
+        x: someDate, 
         y: Number.parseFloat(accounts[accountName].value)
       });
     });
